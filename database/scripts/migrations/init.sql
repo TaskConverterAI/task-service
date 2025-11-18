@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS task
 (
     id                 BIGSERIAL PRIMARY KEY,
     author             BIGINT,
-    title              VARCHAR(255)            NOT NULL,
+    title              VARCHAR(255),
     taskType           BIGINT,
     description        VARCHAR(255)            NOT NULL,
     location_id	       BIGINT,
