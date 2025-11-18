@@ -8,7 +8,6 @@ import ru.tcai.taskservice.dto.request.DeadlineRequest;
 import ru.tcai.taskservice.dto.request.LocationRequest;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @Builder
@@ -24,7 +23,5 @@ public class TaskResponse {
     private Long authorId;
     private Long groupId;
     private Long doerId;
-    private List<Long> linkedTaskIds;
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 }

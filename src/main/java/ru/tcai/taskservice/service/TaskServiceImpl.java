@@ -1,14 +1,8 @@
 package ru.tcai.taskservice.service;
 
-import ru.tcai.taskservice.entity.Location;
-import ru.tcai.taskservice.entity.LocationPoint;
-import ru.tcai.taskservice.entity.Reminder;
-import ru.tcai.taskservice.entity.Task;
-import ru.tcai.taskservice.dto.request.DeadlineRequest;
-import ru.tcai.taskservice.dto.request.LocationRequest;
-import ru.tcai.taskservice.dto.request.TaskRequest;
-import ru.tcai.taskservice.dto.request.UpdateTaskRequest;
-import ru.tcai.taskservice.dto.response.TaskResponse;
+import ru.tcai.taskservice.dto.request.*;
+import ru.tcai.taskservice.dto.response.*;
+import ru.tcai.taskservice.entity.*;
 import ru.tcai.taskservice.exception.TaskNotFoundException;
 import ru.tcai.taskservice.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,10 +20,11 @@ import java.util.stream.Collectors;
 @Transactional
 public class TaskServiceImpl implements TaskService {
 
-    public TaskRepository taskRepository;
-    public LocationRepository locationRepository;
-    public LocationPointRepository locationPointRepository;
-    public ReminderRepository reminderRepository;
+    private final TaskRepository taskRepository;
+    private final LocationRepository locationRepository;
+    private final LocationPointRepository locationPointRepository;
+    private final ReminderRepository reminderRepository;
+    private final LinkedTaskRepository linkedTaskRepository;
 
     @Override
     public TaskResponse createTask(TaskRequest taskRequest) {
@@ -74,8 +70,11 @@ public class TaskServiceImpl implements TaskService {
                 .authorId(taskRequest.getAuthorId())
                 .groupId(taskRequest.getGroupId())
                 .doerId(taskRequest.getDoerId())
+                .status("UNDONE")
                 .build();
 
+
+        log.info("Try to write task");
         Task savedTask = taskRepository.save(task);
         log.info("Created task with ID: {}", savedTask.getId());
 
@@ -120,6 +119,46 @@ public class TaskServiceImpl implements TaskService {
         return tasks.stream()
                 .map(this::mapTaskToTaskResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public TaskDetailsResponse getTaskDetailsId(Long taskId) {
+        log.info("Getting task by ID: {}", taskId);
+
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new TaskNotFoundException("Task not found with id: " + taskId));
+
+        log.info("Task found: {}", task);
+        return mapTaskToTaskDetailsResponse(task);
+    }
+
+    @Override
+    public SubtaskResponse createSubtask(Long taskId, CreateSubtaskRequest createSubtaskRequest) {
+        log.info("Creating subtask for task ID: {}", taskId);
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new TaskNotFoundException("Task not found with id: " + taskId));
+        Task subtask = Task.builder()
+                .description(createSubtaskRequest.getText())
+                .taskType(Long.valueOf(1))
+                .authorId(task.getAuthorId())
+                .groupId(task.getGroupId())
+                .doerId(task.getDoerId())
+                .status("UNDONE")
+                .build();
+        taskRepository.save(subtask);
+        log.info("Created subtask with ID: {}", subtask.getId());
+        return mapSubtaskToSubtaskResponse(subtask);
+    }
+
+    @Override
+    public SubtaskResponse updateSubtaskStatus(Long subtaskId, UpdateSubtaskStatusRequest updateSubtaskStatusRequest) {
+        log.info("Updating subtask status with ID: {}", subtaskId);
+        Task subtask = taskRepository.findById(subtaskId)
+                .orElseThrow(() -> new TaskNotFoundException("Subtask not found with id: " + subtaskId));
+        subtask.setStatus(updateSubtaskStatusRequest.getStatus());
+        taskRepository.save(subtask);
+        log.info("Updated subtask status with ID: {}", subtaskId);
+        return mapSubtaskToSubtaskResponse(subtask);
     }
 
     @Override
@@ -205,18 +244,13 @@ public class TaskServiceImpl implements TaskService {
 
         Task task = taskRepository.findById(id).orElseThrow();
 
-        List<Task> allTasks = taskRepository.findAll();
-        for (Task t : allTasks) {
-            if (t.getLinkedTask().contains(id)) {
-                t.getLinkedTask().remove(id);
-                taskRepository.save(t);
-                break;
+        List<LinkedTask> linkedTasks = linkedTaskRepository.findByTaskId(id);
+        if (linkedTasks != null) {
+            for (LinkedTask linkedTask : linkedTasks) {
+                Long linkedTaskId = linkedTask.getLinkedTaskId();
+                linkedTaskRepository.deleteByTaskId(linkedTaskId);
+                deleteTask(linkedTaskId);
             }
-        }
-
-        for (Long i : task.getLinkedTask())
-        {
-            taskRepository.deleteById(i);
         }
 
         if (task.getLocation_id() != null) {
@@ -234,6 +268,79 @@ public class TaskServiceImpl implements TaskService {
         taskRepository.deleteById(id);
         log.info("Deleted task with ID: {}", id);
 
+    }
+
+    public TaskDetailsResponse mapTaskToTaskDetailsResponse(Task task) {
+        if (task == null) {
+            return null;
+        }
+
+        return TaskDetailsResponse.builder()
+                .id(task.getId())
+                .title(task.getTitle())
+                .description(task.getDescription())
+                .taskType(task.getTaskType())
+                .groupId(task.getGroupId())
+                .doerId(task.getDoerId())
+                .location(mapLocationToLocationResponse(locationRepository.findById(task.getLocation_id()).orElse(null)))
+                .deadline(mapReminderToDeadlineResponse(reminderRepository.findById(task.getDeadline_id()).orElse(null)))
+                .createdAt(task.getCreatedAt())
+                .subtasks(getSubtasks(task).stream().map(this::mapSubtaskToSubtaskResponse).collect(Collectors.toList()))
+                .build();
+    }
+
+    public SubtaskResponse mapSubtaskToSubtaskResponse(Task task) {
+        if (task == null) {
+            return null;
+        }
+
+        return SubtaskResponse.builder()
+                .id(task.getId())
+                .description(task.getDescription())
+                .groupId(task.getGroupId())
+                .doerId(task.getDoerId())
+                .createdAt(task.getCreatedAt())
+                .updatedAt(task.getUpdatedAt())
+                .status(task.getStatus())
+                .build();
+    }
+
+    public List<Task> getSubtasks(Task task) {
+        List<Task> subtasks = new ArrayList<>();
+        List<LinkedTask> linkedTasks = linkedTaskRepository.findByTaskId(task.getId());
+        for (LinkedTask linkedTask : linkedTasks) {
+            Task subtask = taskRepository.findById(linkedTask.getLinkedTaskId()).orElse(null);
+            if (subtask != null) {
+                subtasks.add(subtask);
+            }
+        }
+        return subtasks;
+    }
+
+    public DeadlineResponse mapReminderToDeadlineResponse(Reminder reminder) {
+        if (reminder == null) {
+            return null;
+        }
+
+        return DeadlineResponse.builder()
+                .time(reminder.getTime())
+                .remindByTime(reminder.getRemindByTime())
+                .build();
+    }
+
+    public LocationResponse mapLocationToLocationResponse(Location location) {
+        if (location == null) {
+            return null;
+        }
+
+        LocationPoint locationPoint = locationPointRepository.findById(location.getPoint_id()).orElse(null);
+
+        return LocationResponse.builder()
+                .latitude(locationPoint.getLatitude())
+                .longitude(locationPoint.getLongitude())
+                .locationName(locationPoint.getName())
+                .remindByLocation(location.getRemindByLocation() != null ? location.getRemindByLocation() : false)
+                .build();
     }
 
     public Location mapLocationRequestToLocation(LocationRequest locationRequest) {
@@ -302,7 +409,6 @@ public class TaskServiceImpl implements TaskService {
                 .deadline(reminderRequest)
                 .groupId(task.getGroupId())
                 .doerId(task.getDoerId())
-                .linkedTaskIds(task.getLinkedTask())
                 .build();
     }
 }

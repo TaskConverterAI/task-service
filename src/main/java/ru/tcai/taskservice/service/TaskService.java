@@ -1,9 +1,10 @@
 package ru.tcai.taskservice.service;
 
 
-import ru.tcai.taskservice.dto.request.TaskRequest;
+import ru.tcai.taskservice.dto.request.*;
+import ru.tcai.taskservice.dto.response.SubtaskResponse;
+import ru.tcai.taskservice.dto.response.TaskDetailsResponse;
 import ru.tcai.taskservice.dto.response.TaskResponse;
-import ru.tcai.taskservice.dto.request.UpdateTaskRequest;
 
 import java.util.List;
 
@@ -17,6 +18,12 @@ public interface TaskService {
     List<TaskResponse> getTasksByGroupId(Long groupId);
 
     List<TaskResponse> getTasksByDoerId(Long doerId);
+
+    TaskDetailsResponse getTaskDetailsId(Long taskId);
+
+    SubtaskResponse createSubtask(Long taskId, CreateSubtaskRequest createSubtaskRequest);
+
+    SubtaskResponse updateSubtaskStatus(Long subtaskId, UpdateSubtaskStatusRequest updateSubtaskStatusRequest);
 
     TaskResponse updateTask(Long id, UpdateTaskRequest updateTaskRequest);
 

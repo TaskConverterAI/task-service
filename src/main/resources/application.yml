@@ -2,7 +2,7 @@ spring:
   application:
     name: task-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/mydatabase
+    url: jdbc:postgresql://localhost:57105/mydatabase
     username: myuser
     password: mypassword
     driver-class-name: org.postgresql.Driver
@@ -12,12 +12,14 @@ spring:
     show-sql: true
     properties:
       hibernate:
+        bytecode:
+          provider: none
         dialect: org.hibernate.dialect.PostgreSQLDialect
         globally_quoted_identifiers: false
         format_sql: true
 
 server:
-  port: 8082
+  port: 8083
 
 logging:
   level:

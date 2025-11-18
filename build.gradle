@@ -1,5 +1,5 @@
 plugins {
-    id 'org.springframework.boot' version '3.2.0'
+    id 'org.springframework.boot' version '3.2.12'
     id 'io.spring.dependency-management' version '1.1.4'
     id 'java'
 }
@@ -32,8 +32,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+    implementation 'net.bytebuddy:byte-buddy-gradle-plugin:1.18.1'
 
     // Database
     runtimeOnly 'org.postgresql:postgresql'
@@ -44,6 +44,21 @@ dependencies {
 
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    implementation 'org.hibernate.orm:hibernate-core:6.2.7.Final'
+}
+
+tasks.named('bootRun') {
+    jvmArgs = [
+            '--add-opens', 'java.base/java.lang=ALL-UNNAMED',
+            '--add-opens', 'java.base/java.util=ALL-UNNAMED',
+            '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED',
+            '--add-opens', 'java.base/java.text=ALL-UNNAMED',
+            '--add-opens', 'java.desktop/java.awt.font=ALL-UNNAMED',
+            '--add-opens', 'java.base/java.util=org.hibernate.orm.core',
+            '--add-opens', 'java.base/java.util=net.bytebuddy',
+            '-Dhibernate.bytecode.use_reflection_optimizer=false'
+    ]
 }
 
 dependencyManagement {
