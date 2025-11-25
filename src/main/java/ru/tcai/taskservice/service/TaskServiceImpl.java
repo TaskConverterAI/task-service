@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -64,6 +65,8 @@ public class TaskServiceImpl implements TaskService {
             reminderId = savedReminder.getId();
         }
 
+        LocalDateTime now = LocalDateTime.now();
+
         Task task = Task.builder()
                 .title(taskRequest.getTitle())
                 .description(taskRequest.getDescription())
@@ -74,6 +77,8 @@ public class TaskServiceImpl implements TaskService {
                 .groupId(taskRequest.getGroupId())
                 .doerId(taskRequest.getDoerId())
                 .status("UNDONE")
+                .createdAt(now)
+                .updatedAt(now)
                 .build();
 
 
@@ -168,6 +173,7 @@ public class TaskServiceImpl implements TaskService {
         Task subtask = taskRepository.findById(subtaskId)
                 .orElseThrow(() -> new SubtaskNotFoundException("Subtask not found with id: " + subtaskId));
         subtask.setStatus(updateSubtaskStatusRequest.getStatus());
+        subtask.setUpdatedAt(LocalDateTime.now());
         taskRepository.save(subtask);
         log.info("Updated subtask status with ID: {}", subtaskId);
         return mapSubtaskToSubtaskResponse(subtask);
@@ -240,6 +246,8 @@ public class TaskServiceImpl implements TaskService {
             task.setDoerId(updateTaskRequest.getDoerId());
         }
 
+        task.setUpdatedAt(LocalDateTime.now());
+
         Task updatedTask = taskRepository.save(task);
         log.info("Updated task with ID: {}", updatedTask.getId());
 
@@ -260,6 +268,9 @@ public class TaskServiceImpl implements TaskService {
                 .build();
 
         Comment savedComment = commentRepository.save(comment);
+
+        task.setUpdatedAt(LocalDateTime.now());
+        taskRepository.save(task);
 
         log.info("Wrote comment to task with ID: {}", taskId);
 
@@ -476,6 +487,7 @@ public class TaskServiceImpl implements TaskService {
                 .deadline(reminderRequest)
                 .groupId(task.getGroupId())
                 .doerId(task.getDoerId())
+                .createdAt(task.getCreatedAt())
                 .build();
     }
 }
