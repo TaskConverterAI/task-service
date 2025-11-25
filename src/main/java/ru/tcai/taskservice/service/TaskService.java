@@ -19,7 +19,7 @@ public interface TaskService {
 
     List<TaskResponse> getTasksByDoerId(Long doerId);
 
-    TaskDetailsResponse getTaskDetailsId(Long taskId);
+    TaskDetailsResponse getTaskDetailsById(Long taskId);
 
     SubtaskResponse createSubtask(Long taskId, CreateSubtaskRequest createSubtaskRequest);
 

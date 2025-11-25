@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.tcai.taskservice.entity.Comment;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,4 +25,5 @@ public class TaskDetailsResponse {
     private Long doerId;
     private LocalDateTime createdAt;
     private List<SubtaskResponse> subtasks;
+    private List<CommentResponse> comments;
 }

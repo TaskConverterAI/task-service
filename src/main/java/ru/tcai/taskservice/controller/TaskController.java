@@ -51,7 +51,7 @@ public class TaskController {
 
     @GetMapping("/get/details/{taskId}")
     public ResponseEntity<TaskDetailsResponse> getTaskDetailsById(@PathVariable Long taskId) {
-        TaskDetailsResponse response = taskService.getTaskDetailsId(taskId);
+        TaskDetailsResponse response = taskService.getTaskDetailsById(taskId);
         return ResponseEntity.ok(response);
     }
 

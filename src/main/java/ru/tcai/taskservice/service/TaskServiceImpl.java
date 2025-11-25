@@ -25,6 +25,7 @@ public class TaskServiceImpl implements TaskService {
     private final LocationPointRepository locationPointRepository;
     private final ReminderRepository reminderRepository;
     private final LinkedTaskRepository linkedTaskRepository;
+    private final CommentRepository commentRepository;
 
     @Override
     public TaskResponse createTask(TaskRequest taskRequest) {
@@ -122,7 +123,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public TaskDetailsResponse getTaskDetailsId(Long taskId) {
+    public TaskDetailsResponse getTaskDetailsById(Long taskId) {
         log.info("Getting task by ID: {}", taskId);
 
         Task task = taskRepository.findById(taskId)
@@ -265,6 +266,11 @@ public class TaskServiceImpl implements TaskService {
             reminderRepository.deleteById(task.getDeadline_id());
         }
 
+        List<Comment> comments = commentRepository.findByTaskId(id);
+        if (comments != null) {
+            commentRepository.deleteAll(comments);
+        }
+
         taskRepository.deleteById(id);
         log.info("Deleted task with ID: {}", id);
 
@@ -286,6 +292,7 @@ public class TaskServiceImpl implements TaskService {
                 .deadline(mapReminderToDeadlineResponse(reminderRepository.findById(task.getDeadline_id()).orElse(null)))
                 .createdAt(task.getCreatedAt())
                 .subtasks(getSubtasks(task).stream().map(this::mapSubtaskToSubtaskResponse).collect(Collectors.toList()))
+                .comments(getComments(task).stream().map(this::mapCommentToCommentResponse).collect(Collectors.toList()))
                 .build();
     }
 
@@ -315,6 +322,23 @@ public class TaskServiceImpl implements TaskService {
             }
         }
         return subtasks;
+    }
+
+    public CommentResponse mapCommentToCommentResponse(Comment comment) {
+        if (comment == null) {
+            return null;
+        }
+
+        return CommentResponse.builder()
+                .taskId(comment.getTaskId())
+                .authorId(comment.getAuthorId())
+                .text(comment.getText())
+                .createdAt(comment.getCreatedAt())
+                .build();
+    }
+
+    public List<Comment> getComments(Task task) {
+        return commentRepository.findByTaskId(task.getId());
     }
 
     public DeadlineResponse mapReminderToDeadlineResponse(Reminder reminder) {

@@ -8,10 +8,18 @@ CREATE TABLE IF NOT EXISTS task
     location_id	       BIGINT,
     deadline_id        BIGINT,
     groupId            BIGINT,
-    doer               BIGINT
+    doer               BIGINT,
     created_at         TIMESTAMP,
     updated_at         TIMESTAMP,
     status             VARCHAR(255)
+);
+
+CREATE TABLE IF NOT EXISTS comment
+(
+    task_id            BIGINT,
+    author_id          BIGINT,
+    text               VARCHAR(255),
+    created_at         TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS linked_task
@@ -45,6 +53,8 @@ CREATE TABLE IF NOT EXISTS reminder
 ALTER TABLE location ADD FOREIGN KEY (point_id)    REFERENCES location_point(id);
 ALTER TABLE task     ADD FOREIGN KEY (location_id) REFERENCES location(id);
 ALTER TABLE task     ADD FOREIGN KEY (deadline_id) REFERENCES reminder(id);
+
+ALTER TABLE comment ADD CONSTRAINT fk_comment_task FOREIGN KEY (task_id) REFERENCES task(id);
 
 ALTER TABLE linked_task ADD CONSTRAINT fk_linked_task_task FOREIGN KEY (task_id) REFERENCES task(id);
 ALTER TABLE linked_task ADD CONSTRAINT fk_linked_task_linked_task FOREIGN KEY (linked_task_id) REFERENCES task(id);

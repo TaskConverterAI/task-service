@@ -1,26 +1,20 @@
 package ru.tcai.taskservice.dto.response;
 
+import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.tcai.taskservice.entity.Comment;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SubtaskResponse {
-    private Long id;
-    private String description;
+public class CommentResponse {
+    private Long taskId;
     private Long authorId;
-    private Long groupId;
-    private Long doerId;
+    private String text;
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private String status;
-    private List<Comment> comments;
 }
