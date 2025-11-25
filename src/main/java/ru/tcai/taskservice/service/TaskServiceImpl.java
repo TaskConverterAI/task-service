@@ -272,6 +272,8 @@ public class TaskServiceImpl implements TaskService {
 
         Task task = taskRepository.findById(id).orElseThrow();
 
+        taskRepository.deleteById(id);
+
         List<LinkedTask> linkedTasks = linkedTaskRepository.findByTaskId(id);
         if (linkedTasks != null) {
             for (LinkedTask linkedTask : linkedTasks) {
@@ -283,10 +285,11 @@ public class TaskServiceImpl implements TaskService {
 
         if (task.getLocation_id() != null) {
             Location location = locationRepository.findById(task.getLocation_id()).orElse(null);
+            locationRepository.deleteById(task.getLocation_id());
             if (location != null && location.getPoint_id() != null) {
                 locationPointRepository.deleteById(location.getPoint_id());
             }
-            locationRepository.deleteById(task.getLocation_id());
+
         }
 
         if (task.getDeadline_id() != null) {
