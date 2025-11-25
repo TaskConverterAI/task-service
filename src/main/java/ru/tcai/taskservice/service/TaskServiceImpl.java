@@ -3,6 +3,8 @@ package ru.tcai.taskservice.service;
 import ru.tcai.taskservice.dto.request.*;
 import ru.tcai.taskservice.dto.response.*;
 import ru.tcai.taskservice.entity.*;
+import ru.tcai.taskservice.exception.CommentNotFoundException;
+import ru.tcai.taskservice.exception.SubtaskNotFoundException;
 import ru.tcai.taskservice.exception.TaskNotFoundException;
 import ru.tcai.taskservice.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -86,8 +88,7 @@ public class TaskServiceImpl implements TaskService {
     public TaskResponse getTaskById(Long id) {
         log.info("Getting task by ID: {}", id);
 
-        Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new TaskNotFoundException("Task not found with id: " + id));
+        Task task = taskRepository.findById(id).orElse(null);
 
         return mapTaskToTaskResponse(task);
     }
@@ -155,7 +156,7 @@ public class TaskServiceImpl implements TaskService {
     public SubtaskResponse updateSubtaskStatus(Long subtaskId, UpdateSubtaskStatusRequest updateSubtaskStatusRequest) {
         log.info("Updating subtask status with ID: {}", subtaskId);
         Task subtask = taskRepository.findById(subtaskId)
-                .orElseThrow(() -> new TaskNotFoundException("Subtask not found with id: " + subtaskId));
+                .orElseThrow(() -> new SubtaskNotFoundException("Subtask not found with id: " + subtaskId));
         subtask.setStatus(updateSubtaskStatusRequest.getStatus());
         taskRepository.save(subtask);
         log.info("Updated subtask status with ID: {}", subtaskId);
@@ -258,7 +259,11 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public void deleteComment(Long id) {
         log.info("Deleting comment with ID: {}", id);
-        commentRepository.deleteById(id);
+
+        Comment comment = commentRepository.findById(id)
+                .orElseThrow(() -> new CommentNotFoundException("Comment not found with id: " + id));
+        commentRepository.delete(comment);
+
         log.info("Deleted comment with ID: {}", id);
     }
 
@@ -266,11 +271,8 @@ public class TaskServiceImpl implements TaskService {
     public void deleteTask(Long id) {
         log.info("Deleting task with ID: {}", id);
 
-        if (!taskRepository.existsById(id)) {
-            throw new TaskNotFoundException("Task not found with id: " + id);
-        }
-
-        Task task = taskRepository.findById(id).orElseThrow();
+        Task task = taskRepository.findById(id)
+                .orElseThrow(() -> new TaskNotFoundException("Task not found with id: " + id));
 
         taskRepository.deleteById(id);
 
