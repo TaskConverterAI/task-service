@@ -30,5 +30,7 @@ public interface TaskService {
 
     CommentResponse addCommentToTask(Long taskId, CommentRequest commentRequest);
 
+    void deleteComment(Long id);
+
     void deleteTask(Long id);
 }

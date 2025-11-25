@@ -256,6 +256,13 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    public void deleteComment(Long id) {
+        log.info("Deleting comment with ID: {}", id);
+        commentRepository.deleteById(id);
+        log.info("Deleted comment with ID: {}", id);
+    }
+
+    @Override
     public void deleteTask(Long id) {
         log.info("Deleting task with ID: {}", id);
 
@@ -350,6 +357,7 @@ public class TaskServiceImpl implements TaskService {
         }
 
         return CommentResponse.builder()
+                .id(comment.getId())
                 .taskId(comment.getTaskId())
                 .authorId(comment.getAuthorId())
                 .text(comment.getText())

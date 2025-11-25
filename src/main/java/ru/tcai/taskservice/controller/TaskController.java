@@ -70,6 +70,12 @@ public class TaskController {
         return ResponseEntity.ok(response);
     }
 
+    @DeleteMapping("/delete/comment/{id}")
+    public ResponseEntity<Void> deleteComment(@PathVariable Long id) {
+        taskService.deleteComment(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
         taskService.deleteTask(id);

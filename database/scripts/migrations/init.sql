@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS task
 
 CREATE TABLE IF NOT EXISTS comment
 (
+    id                 BIGSERIAL PRIMARY KEY,
     task_id            BIGINT,
     author_id          BIGINT,
     text               VARCHAR(255),
