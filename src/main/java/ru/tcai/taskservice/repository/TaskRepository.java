@@ -8,6 +8,8 @@ import java.util.List;
 
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
+    List<Task> findByGroupIdIsNullAndAuthorId(Long authorId);
+
     List<Task> findByAuthorId(Long authorId);
 
     List<Task> findByGroupId(Long groupId);

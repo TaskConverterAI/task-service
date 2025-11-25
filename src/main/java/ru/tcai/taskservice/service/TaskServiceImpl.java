@@ -94,6 +94,16 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    public List<TaskResponse> getPersonalTasksByAuthorId(Long authorId) {
+        log.info("Getting personal tasks by author ID: {}", authorId);
+
+        List<Task> tasks = taskRepository.findByGroupIdIsNullAndAuthorId(authorId);
+        return tasks.stream()
+                .map(this::mapTaskToTaskResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<TaskResponse> getTasksByAuthorId(Long authorId) {
         log.info("Getting tasks by author ID: {}", authorId);
 

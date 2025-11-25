@@ -14,6 +14,8 @@ public interface TaskService {
 
     TaskResponse getTaskById(Long id);
 
+    List<TaskResponse> getPersonalTasksByAuthorId(Long authorId);
+
     List<TaskResponse> getTasksByAuthorId(Long authorId);
 
     List<TaskResponse> getTasksByGroupId(Long groupId);
