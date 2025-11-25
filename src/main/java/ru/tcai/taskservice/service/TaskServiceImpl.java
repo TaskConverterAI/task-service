@@ -236,6 +236,26 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    public CommentResponse addCommentToTask(Long taskId, CommentRequest commentRequest) {
+        log.info("Writing comment to task with ID: {}", taskId);
+
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new TaskNotFoundException("Task not found with id: " + taskId));
+
+        Comment comment = Comment.builder()
+                .taskId(taskId)
+                .authorId(commentRequest.getAuthorId())
+                .text(commentRequest.getText())
+                .build();
+
+        Comment savedComment = commentRepository.save(comment);
+
+        log.info("Wrote comment to task with ID: {}", taskId);
+
+        return mapCommentToCommentResponse(savedComment);
+    }
+
+    @Override
     public void deleteTask(Long id) {
         log.info("Deleting task with ID: {}", id);
 

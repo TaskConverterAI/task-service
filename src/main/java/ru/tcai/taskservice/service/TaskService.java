@@ -2,6 +2,7 @@ package ru.tcai.taskservice.service;
 
 
 import ru.tcai.taskservice.dto.request.*;
+import ru.tcai.taskservice.dto.response.CommentResponse;
 import ru.tcai.taskservice.dto.response.SubtaskResponse;
 import ru.tcai.taskservice.dto.response.TaskDetailsResponse;
 import ru.tcai.taskservice.dto.response.TaskResponse;
@@ -26,6 +27,8 @@ public interface TaskService {
     SubtaskResponse updateSubtaskStatus(Long subtaskId, UpdateSubtaskStatusRequest updateSubtaskStatusRequest);
 
     TaskResponse updateTask(Long id, UpdateTaskRequest updateTaskRequest);
+
+    CommentResponse addCommentToTask(Long taskId, CommentRequest commentRequest);
 
     void deleteTask(Long id);
 }

@@ -1,6 +1,7 @@
 package ru.tcai.taskservice.controller;
 
 import ru.tcai.taskservice.dto.request.*;
+import ru.tcai.taskservice.dto.response.CommentResponse;
 import ru.tcai.taskservice.dto.response.SubtaskResponse;
 import ru.tcai.taskservice.dto.response.TaskDetailsResponse;
 import ru.tcai.taskservice.dto.response.TaskResponse;
@@ -59,6 +60,13 @@ public class TaskController {
     public ResponseEntity<TaskResponse> updateTask(@PathVariable Long taskId,
                                                    @RequestBody UpdateTaskRequest updateTaskRequest) {
         TaskResponse response = taskService.updateTask(taskId, updateTaskRequest);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/update/{taskId}/comment")
+    public ResponseEntity<CommentResponse> addCommentToTask(@PathVariable Long taskId,
+                                                            @RequestBody CommentRequest commentRequest) {
+        CommentResponse response = taskService.addCommentToTask(taskId, commentRequest);
         return ResponseEntity.ok(response);
     }
 
