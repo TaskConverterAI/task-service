@@ -70,7 +70,7 @@ public class TaskServiceImpl implements TaskService {
         Task task = Task.builder()
                 .title(taskRequest.getTitle())
                 .description(taskRequest.getDescription())
-                .taskType(taskRequest.getTaskType())
+                .taskType(Long.valueOf(0))
                 .location_id(locationId)
                 .deadline_id(reminderId)
                 .authorId(taskRequest.getAuthorId())

@@ -14,8 +14,6 @@ public class TaskRequest {
 
     private String description;
 
-    private Long taskType;
-
     private LocationRequest location;
 
     private DeadlineRequest deadline;

@@ -20,69 +20,69 @@ public class TaskController {
 
     private final TaskService taskService;
 
-    @PostMapping("/create")
+    @PostMapping
     public ResponseEntity<TaskResponse> createTask(@RequestBody TaskRequest taskRequest) {
         TaskResponse response = taskService.createTask(taskRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/get/{taskId}")
+    @GetMapping("/{taskId}")
     public ResponseEntity<TaskResponse> getTaskById(@PathVariable Long taskId) {
         TaskResponse response = taskService.getTaskById(taskId);
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/get/personal/{userId}")
+    @GetMapping("/personal/{userId}")
     public ResponseEntity<List<TaskResponse>> getPersonalTasksByAuthorId(@PathVariable Long userId) {
         List<TaskResponse> response = taskService.getPersonalTasksByAuthorId(userId);
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/get/user/{userId}")
+    @GetMapping("/user/{userId}")
     public ResponseEntity<List<TaskResponse>> getTasksByAuthorId(@PathVariable Long userId) {
         List<TaskResponse> response = taskService.getTasksByAuthorId(userId);
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/get/group/{groupId}")
+    @GetMapping("/group/{groupId}")
     public ResponseEntity<List<TaskResponse>> getTasksByGroupId(@PathVariable Long groupId) {
         List<TaskResponse> response = taskService.getTasksByGroupId(groupId);
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/get/doer/{doerId}")
+    @GetMapping("/doer/{doerId}")
     public ResponseEntity<List<TaskResponse>> getTasksByDoerId(@PathVariable Long doerId) {
         List<TaskResponse> response = taskService.getTasksByDoerId(doerId);
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/get/details/{taskId}")
+    @GetMapping("/details/{taskId}")
     public ResponseEntity<TaskDetailsResponse> getTaskDetailsById(@PathVariable Long taskId) {
         TaskDetailsResponse response = taskService.getTaskDetailsById(taskId);
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/update/{taskId}")
+    @PutMapping("/{taskId}")
     public ResponseEntity<TaskResponse> updateTask(@PathVariable Long taskId,
                                                    @RequestBody UpdateTaskRequest updateTaskRequest) {
         TaskResponse response = taskService.updateTask(taskId, updateTaskRequest);
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/update/{taskId}/comment")
+    @PutMapping("/{taskId}/comment")
     public ResponseEntity<CommentResponse> addCommentToTask(@PathVariable Long taskId,
                                                             @RequestBody CommentRequest commentRequest) {
         CommentResponse response = taskService.addCommentToTask(taskId, commentRequest);
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/delete/comment/{id}")
+    @DeleteMapping("/comment/{id}")
     public ResponseEntity<Void> deleteComment(@PathVariable Long id) {
         taskService.deleteComment(id);
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
         taskService.deleteTask(id);
         return ResponseEntity.noContent().build();
@@ -95,7 +95,7 @@ public class TaskController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PutMapping("/update/subtask/{subtaskId}/status")
+    @PutMapping("/subtask/{subtaskId}/status")
     public ResponseEntity<SubtaskResponse> updateSubtaskStatus(@PathVariable Long subtaskId,
                                                             @RequestBody UpdateSubtaskStatusRequest updateSubtaskStatusRequest) {
         SubtaskResponse response = taskService.updateSubtaskStatus(subtaskId, updateSubtaskStatusRequest);
