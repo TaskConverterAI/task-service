@@ -65,6 +65,15 @@ public class TaskServiceImpl implements TaskService {
             reminderId = savedReminder.getId();
         }
 
+        String priority = taskRequest.getPriority();
+        if (priority == null) {
+            priority = "MIDDLE";
+        } else if (!priority.equals("LOW") &&
+                   !priority.equals("MIDDLE") &&
+                   !priority.equals("HIGH")) {
+            priority = "MIDDLE";
+        }
+
         LocalDateTime now = LocalDateTime.now();
 
         Task task = Task.builder()
@@ -77,6 +86,7 @@ public class TaskServiceImpl implements TaskService {
                 .groupId(taskRequest.getGroupId())
                 .doerId(taskRequest.getDoerId())
                 .status("UNDONE")
+                .priority(priority)
                 .createdAt(now)
                 .updatedAt(now)
                 .build();
@@ -93,7 +103,7 @@ public class TaskServiceImpl implements TaskService {
     public TaskResponse getTaskById(Long id) {
         log.info("Getting task by ID: {}", id);
 
-        Task task = taskRepository.findById(id).orElse(null);
+        Task task = taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException("Task not found with id: " + id));
 
         return mapTaskToTaskResponse(task);
     }
@@ -161,6 +171,7 @@ public class TaskServiceImpl implements TaskService {
                 .groupId(task.getGroupId())
                 .doerId(task.getDoerId())
                 .status("UNDONE")
+                .priority("MIDDLE")
                 .build();
         taskRepository.save(subtask);
         log.info("Created subtask with ID: {}", subtask.getId());
@@ -244,6 +255,14 @@ public class TaskServiceImpl implements TaskService {
         }
         if (updateTaskRequest.getDoerId() != null) {
             task.setDoerId(updateTaskRequest.getDoerId());
+        }
+
+        if(updateTaskRequest.getPriority() != null) {
+            task.setPriority(updateTaskRequest.getPriority());
+        }
+
+        if(updateTaskRequest.getStatus() != null) {
+            task.setStatus(updateTaskRequest.getStatus());
         }
 
         task.setUpdatedAt(LocalDateTime.now());
@@ -344,6 +363,8 @@ public class TaskServiceImpl implements TaskService {
                 .doerId(task.getDoerId())
                 .location(mapLocationToLocationResponse(locationRepository.findById(task.getLocation_id()).orElse(null)))
                 .deadline(mapReminderToDeadlineResponse(reminderRepository.findById(task.getDeadline_id()).orElse(null)))
+                .status(task.getStatus())
+                .priority(task.getPriority())
                 .createdAt(task.getCreatedAt())
                 .subtasks(getSubtasks(task).stream().map(this::mapSubtaskToSubtaskResponse).collect(Collectors.toList()))
                 .comments(getComments(task).stream().map(this::mapCommentToCommentResponse).collect(Collectors.toList()))
@@ -489,6 +510,8 @@ public class TaskServiceImpl implements TaskService {
                 .deadline(reminderRequest)
                 .groupId(task.getGroupId())
                 .doerId(task.getDoerId())
+                .status(task.getStatus())
+                .priority(task.getPriority())
                 .createdAt(task.getCreatedAt())
                 .build();
     }

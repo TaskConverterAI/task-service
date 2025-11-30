@@ -24,4 +24,6 @@ public class TaskResponse {
     private Long groupId;
     private Long doerId;
     private LocalDateTime createdAt;
+    private String priority;
+    private String status;
 }

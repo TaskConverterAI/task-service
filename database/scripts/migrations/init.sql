@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS task
     doer               BIGINT,
     created_at         TIMESTAMP,
     updated_at         TIMESTAMP,
-    status             VARCHAR(255)
+    status             VARCHAR(255),
+    priority           VARCHAR(255)
 );
 
 CREATE TABLE IF NOT EXISTS comment

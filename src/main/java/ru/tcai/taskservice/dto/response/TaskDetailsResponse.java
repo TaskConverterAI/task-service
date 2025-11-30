@@ -22,6 +22,8 @@ public class TaskDetailsResponse {
     private Long authorId;
     private Long groupId;
     private Long doerId;
+    private String status;
+    private String priority;
     private LocalDateTime createdAt;
     private List<SubtaskResponse> subtasks;
     private List<CommentResponse> comments;

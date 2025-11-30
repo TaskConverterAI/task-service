@@ -53,4 +53,7 @@ public class Task {
 
     @Column(name = "status")
     private String status;
+
+    @Column(name = "priority")
+    private String priority;
 }

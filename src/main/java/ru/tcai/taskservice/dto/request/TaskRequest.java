@@ -23,4 +23,6 @@ public class TaskRequest {
     private Long groupId;
 
     private Long doerId;
+
+    private String priority;
 }

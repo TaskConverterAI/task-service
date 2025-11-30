@@ -17,4 +17,6 @@ public class UpdateTaskRequest {
     private DeadlineRequest deadline;
     private Long groupId;
     private Long doerId;
+    private String priority;
+    private String status;
 }
