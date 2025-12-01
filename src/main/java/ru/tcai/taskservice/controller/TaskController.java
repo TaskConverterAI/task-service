@@ -133,4 +133,17 @@ public class TaskController {
         NoteDetailsResponse response = taskService.getNoteDetailsById(id);
         return ResponseEntity.ok(response);
     }
+
+    @PutMapping("/note/{noteId}/comment")
+    public ResponseEntity<CommentResponse> addCommentToNote(@PathVariable Long noteId,
+                                                            @RequestBody CommentRequest commentRequest) {
+        CommentResponse response = taskService.addCommentToNote(noteId, commentRequest);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/note/comment/{id}")
+    public ResponseEntity<Void> deleteCommentToNote(@PathVariable Long id) {
+        taskService.deleteComment(id);
+        return ResponseEntity.noContent().build();
+    }
 }
