@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.tcai.taskservice.dto.response.ErrorResponse;
 import ru.tcai.taskservice.exception.CommentNotFoundException;
-import ru.tcai.taskservice.exception.SubtaskNotFoundException;
+import ru.tcai.taskservice.exception.NoteNotFoundException;
 import ru.tcai.taskservice.exception.TaskNotFoundException;
 
 import java.time.LocalDateTime;
@@ -30,8 +30,8 @@ public class TaskControllerAdvice {
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(SubtaskNotFoundException.class)
-    public ResponseEntity<ErrorResponse> subtaskNotFoundExceptionHandler(SubtaskNotFoundException exception) {
+    @ExceptionHandler(NoteNotFoundException.class)
+    public ResponseEntity<ErrorResponse> noteNotFoundExceptionHandler(NoteNotFoundException exception) {
         log.info(exception.getMessage());
 
         ErrorResponse errorResponse = ErrorResponse.builder()

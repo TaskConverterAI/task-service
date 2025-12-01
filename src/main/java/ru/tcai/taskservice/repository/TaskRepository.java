@@ -10,9 +10,11 @@ import java.util.List;
 public interface TaskRepository extends JpaRepository<Task, Long> {
     List<Task> findByGroupIdIsNullAndAuthorId(Long authorId);
 
-    List<Task> findByAuthorId(Long authorId);
+    List<Task> findByGroupIdIsNullAndAuthorIdAndTaskType(Long authorId, Integer taskType);
 
-    List<Task> findByGroupId(Long groupId);
+    List<Task> findByAuthorIdAndTaskType(Long authorId, Integer taskType);
 
-    List<Task> findByDoerId(Long doerId);
+    List<Task> findByGroupIdAndTaskType(Long groupId, Integer taskType);
+
+    List<Task> findByDoerIdAndTaskType(Long doerId, Integer taskType);
 }

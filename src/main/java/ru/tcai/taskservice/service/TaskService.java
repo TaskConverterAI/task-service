@@ -1,11 +1,7 @@
 package ru.tcai.taskservice.service;
 
-
 import ru.tcai.taskservice.dto.request.*;
-import ru.tcai.taskservice.dto.response.CommentResponse;
-import ru.tcai.taskservice.dto.response.SubtaskResponse;
-import ru.tcai.taskservice.dto.response.TaskDetailsResponse;
-import ru.tcai.taskservice.dto.response.TaskResponse;
+import ru.tcai.taskservice.dto.response.*;
 
 import java.util.List;
 
@@ -24,10 +20,6 @@ public interface TaskService {
 
     TaskDetailsResponse getTaskDetailsById(Long taskId);
 
-    SubtaskResponse createSubtask(Long taskId, CreateSubtaskRequest createSubtaskRequest);
-
-    SubtaskResponse updateSubtaskStatus(Long subtaskId, UpdateSubtaskStatusRequest updateSubtaskStatusRequest);
-
     TaskResponse updateTask(Long id, UpdateTaskRequest updateTaskRequest);
 
     CommentResponse addCommentToTask(Long taskId, CommentRequest commentRequest);
@@ -35,4 +27,20 @@ public interface TaskService {
     void deleteComment(Long id);
 
     void deleteTask(Long id);
+
+    NoteResponse createNote(NoteRequest noteRequest);
+
+    void deleteNote(Long id);
+
+    NoteResponse updateNote(Long id, UpdateNoteRequest updateNoteRequest);
+
+    NoteResponse getNoteById(Long id);
+
+    List<NoteResponse> getPersonalNotesByAuthorId(Long authorId);
+
+    List<NoteResponse> getNotesByAuthorId(Long authorId);
+
+    List<NoteResponse> getNotesByGroupId(Long groupId);
+
+    NoteDetailsResponse getNoteDetailsById(Long id);
 }

@@ -12,18 +12,13 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TaskDetailsResponse {
+public class NoteDetailsResponse {
     private Long id;
     private String title;
     private String description;
-    private Long taskType;
     private LocationResponse location;
-    private DeadlineResponse deadline;
     private Long authorId;
     private Long groupId;
-    private Long doerId;
-    private String status;
-    private String priority;
     private LocalDateTime createdAt;
     private List<CommentResponse> comments;
 }

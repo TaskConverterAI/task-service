@@ -24,12 +24,6 @@ CREATE TABLE IF NOT EXISTS comment
     created_at         TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS linked_task
-(
-    task_id            BIGINT,
-    linked_task_id     BIGINT
-);
-
 CREATE TABLE IF NOT EXISTS location
 (
     id                 BIGSERIAL PRIMARY KEY,
@@ -57,6 +51,3 @@ ALTER TABLE task     ADD FOREIGN KEY (location_id) REFERENCES location(id);
 ALTER TABLE task     ADD FOREIGN KEY (deadline_id) REFERENCES reminder(id);
 
 ALTER TABLE comment ADD CONSTRAINT fk_comment_task FOREIGN KEY (task_id) REFERENCES task(id);
-
-ALTER TABLE linked_task ADD CONSTRAINT fk_linked_task_task FOREIGN KEY (task_id) REFERENCES task(id);
-ALTER TABLE linked_task ADD CONSTRAINT fk_linked_task_linked_task FOREIGN KEY (linked_task_id) REFERENCES task(id);

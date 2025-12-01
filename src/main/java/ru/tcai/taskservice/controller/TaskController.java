@@ -1,10 +1,7 @@
 package ru.tcai.taskservice.controller;
 
 import ru.tcai.taskservice.dto.request.*;
-import ru.tcai.taskservice.dto.response.CommentResponse;
-import ru.tcai.taskservice.dto.response.SubtaskResponse;
-import ru.tcai.taskservice.dto.response.TaskDetailsResponse;
-import ru.tcai.taskservice.dto.response.TaskResponse;
+import ru.tcai.taskservice.dto.response.*;
 import ru.tcai.taskservice.service.TaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -88,17 +85,52 @@ public class TaskController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{taskId}/subtask")
-    public ResponseEntity<SubtaskResponse> createSubtask(@PathVariable Long taskId,
-                                                         @RequestBody CreateSubtaskRequest createSubtaskRequest) {
-        SubtaskResponse response = taskService.createSubtask(taskId, createSubtaskRequest);
+    @PostMapping("/note")
+    public ResponseEntity<NoteResponse> createNote(@RequestBody NoteRequest noteRequest) {
+        NoteResponse response = taskService.createNote(noteRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PutMapping("/subtask/{subtaskId}/status")
-    public ResponseEntity<SubtaskResponse> updateSubtaskStatus(@PathVariable Long subtaskId,
-                                                            @RequestBody UpdateSubtaskStatusRequest updateSubtaskStatusRequest) {
-        SubtaskResponse response = taskService.updateSubtaskStatus(subtaskId, updateSubtaskStatusRequest);
+    @GetMapping("/note/personal/{userId}")
+    public ResponseEntity<List<NoteResponse>> getPersonalNotesByAuthorId(@PathVariable Long userId) {
+        List<NoteResponse> response = taskService.getPersonalNotesByAuthorId(userId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/note/user/{userId}")
+    public ResponseEntity<List<NoteResponse>> getNotesByAuthorId(@PathVariable Long userId) {
+        List<NoteResponse> response = taskService.getNotesByAuthorId(userId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/note/group/{groupId}")
+    public ResponseEntity<List<NoteResponse>> getNotesByGroupId(@PathVariable Long groupId) {
+        List<NoteResponse> response = taskService.getNotesByGroupId(groupId);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/note/{id}")
+    public ResponseEntity<Void> deleteNote(@PathVariable Long id) {
+        taskService.deleteNote(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/note/{id}")
+    public ResponseEntity<NoteResponse> updateNote(@PathVariable Long id,
+                                                   @RequestBody UpdateNoteRequest updateNoteRequest) {
+        NoteResponse response = taskService.updateNote(id, updateNoteRequest);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/note/{id}")
+    public ResponseEntity<NoteResponse> getNoteById(@PathVariable Long id) {
+        NoteResponse response = taskService.getNoteById(id);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/note/details/{id}")
+    public ResponseEntity<NoteDetailsResponse> getNoteDetailsById(@PathVariable Long id) {
+        NoteDetailsResponse response = taskService.getNoteDetailsById(id);
         return ResponseEntity.ok(response);
     }
 }

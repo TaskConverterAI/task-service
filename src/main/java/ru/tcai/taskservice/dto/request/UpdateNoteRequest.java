@@ -9,6 +9,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateSubtaskRequest {
-    private String text;
+public class UpdateNoteRequest {
+    private String title;
+    private String description;
+    private LocationRequest location;
+    private Long groupId;
 }

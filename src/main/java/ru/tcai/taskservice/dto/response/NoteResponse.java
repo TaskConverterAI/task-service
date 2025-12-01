@@ -4,23 +4,20 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.tcai.taskservice.entity.Comment;
+import ru.tcai.taskservice.dto.request.LocationRequest;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SubtaskResponse {
+public class NoteResponse {
     private Long id;
+    private String title;
     private String description;
+    private LocationRequest location;
     private Long authorId;
     private Long groupId;
-    private Long doerId;
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private String status;
-    private List<Comment> comments;
 }

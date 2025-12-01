@@ -4,7 +4,7 @@ import ru.tcai.taskservice.dto.request.*;
 import ru.tcai.taskservice.dto.response.*;
 import ru.tcai.taskservice.entity.*;
 import ru.tcai.taskservice.exception.CommentNotFoundException;
-import ru.tcai.taskservice.exception.SubtaskNotFoundException;
+import ru.tcai.taskservice.exception.NoteNotFoundException;
 import ru.tcai.taskservice.exception.TaskNotFoundException;
 import ru.tcai.taskservice.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -112,7 +111,7 @@ public class TaskServiceImpl implements TaskService {
     public List<TaskResponse> getPersonalTasksByAuthorId(Long authorId) {
         log.info("Getting personal tasks by author ID: {}", authorId);
 
-        List<Task> tasks = taskRepository.findByGroupIdIsNullAndAuthorId(authorId);
+        List<Task> tasks = taskRepository.findByGroupIdIsNullAndAuthorIdAndTaskType(authorId, 0);
         return tasks.stream()
                 .map(this::mapTaskToTaskResponse)
                 .collect(Collectors.toList());
@@ -122,7 +121,7 @@ public class TaskServiceImpl implements TaskService {
     public List<TaskResponse> getTasksByAuthorId(Long authorId) {
         log.info("Getting tasks by author ID: {}", authorId);
 
-        List<Task> tasks = taskRepository.findByAuthorId(authorId);
+        List<Task> tasks = taskRepository.findByAuthorIdAndTaskType(authorId, 0);
         return tasks.stream()
                 .map(this::mapTaskToTaskResponse)
                 .collect(Collectors.toList());
@@ -132,7 +131,7 @@ public class TaskServiceImpl implements TaskService {
     public List<TaskResponse> getTasksByGroupId(Long groupId) {
         log.info("Getting tasks by group ID: {}", groupId);
 
-        List<Task> tasks = taskRepository.findByGroupId(groupId);
+        List<Task> tasks = taskRepository.findByGroupIdAndTaskType(groupId, 0);
         return tasks.stream()
                 .map(this::mapTaskToTaskResponse)
                 .collect(Collectors.toList());
@@ -142,7 +141,7 @@ public class TaskServiceImpl implements TaskService {
     public List<TaskResponse> getTasksByDoerId(Long doerId) {
         log.info("Getting tasks by doer ID: {}", doerId);
 
-        List<Task> tasks = taskRepository.findByDoerId(doerId);
+        List<Task> tasks = taskRepository.findByDoerIdAndTaskType(doerId, 0);
         return tasks.stream()
                 .map(this::mapTaskToTaskResponse)
                 .collect(Collectors.toList());
@@ -157,37 +156,6 @@ public class TaskServiceImpl implements TaskService {
 
         log.info("Task found: {}", task);
         return mapTaskToTaskDetailsResponse(task);
-    }
-
-    @Override
-    public SubtaskResponse createSubtask(Long taskId, CreateSubtaskRequest createSubtaskRequest) {
-        log.info("Creating subtask for task ID: {}", taskId);
-        Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new TaskNotFoundException("Task not found with id: " + taskId));
-        Task subtask = Task.builder()
-                .description(createSubtaskRequest.getText())
-                .taskType(Long.valueOf(1))
-                .authorId(task.getAuthorId())
-                .groupId(task.getGroupId())
-                .doerId(task.getDoerId())
-                .status("UNDONE")
-                .priority("MIDDLE")
-                .build();
-        taskRepository.save(subtask);
-        log.info("Created subtask with ID: {}", subtask.getId());
-        return mapSubtaskToSubtaskResponse(subtask);
-    }
-
-    @Override
-    public SubtaskResponse updateSubtaskStatus(Long subtaskId, UpdateSubtaskStatusRequest updateSubtaskStatusRequest) {
-        log.info("Updating subtask status with ID: {}", subtaskId);
-        Task subtask = taskRepository.findById(subtaskId)
-                .orElseThrow(() -> new SubtaskNotFoundException("Subtask not found with id: " + subtaskId));
-        subtask.setStatus(updateSubtaskStatusRequest.getStatus());
-        subtask.setUpdatedAt(LocalDateTime.now());
-        taskRepository.save(subtask);
-        log.info("Updated subtask status with ID: {}", subtaskId);
-        return mapSubtaskToSubtaskResponse(subtask);
     }
 
     @Override
@@ -316,15 +284,6 @@ public class TaskServiceImpl implements TaskService {
 
         taskRepository.deleteById(id);
 
-        List<LinkedTask> linkedTasks = linkedTaskRepository.findByTaskId(id);
-        if (linkedTasks != null) {
-            for (LinkedTask linkedTask : linkedTasks) {
-                Long linkedTaskId = linkedTask.getLinkedTaskId();
-                linkedTaskRepository.deleteByTaskId(linkedTaskId);
-                deleteTask(linkedTaskId);
-            }
-        }
-
         if (task.getLocation_id() != null) {
             Location location = locationRepository.findById(task.getLocation_id()).orElse(null);
             locationRepository.deleteById(task.getLocation_id());
@@ -348,6 +307,210 @@ public class TaskServiceImpl implements TaskService {
 
     }
 
+    @Override
+    public NoteResponse createNote(NoteRequest noteRequest) {
+        log.info("Creating note: {}", noteRequest.getTitle());
+
+        Long locationPointId = null;
+        if (noteRequest.getLocation() != null) {
+            LocationPoint locationPoint = LocationPoint.builder()
+                    .latitude(noteRequest.getLocation().getLatitude())
+                    .longitude(noteRequest.getLocation().getLongitude())
+                    .name(noteRequest.getLocation().getLocationName())
+                    .build();
+            LocationPoint savedLocationPoint = locationPointRepository.save(locationPoint);
+            locationPointId = savedLocationPoint.getId();
+        }
+
+        Long locationId = null;
+        if (locationPointId != null) {
+            Location location = Location.builder()
+                    .point_id(locationPointId)
+                    .remindByLocation(noteRequest.getLocation().getRemindByLocation())
+                    .build();
+            Location savedLocation = locationRepository.save(location);
+            locationId = savedLocation.getId();
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+
+        Task task = Task.builder()
+                .title(noteRequest.getTitle())
+                .description(noteRequest.getDescription())
+                .taskType(Long.valueOf(1))
+                .location_id(locationId)
+                .authorId(noteRequest.getAuthorId())
+                .groupId(noteRequest.getGroupId())
+                .createdAt(now)
+                .updatedAt(now)
+                .build();
+
+
+        log.info("Try to write note");
+        Task savedNote = taskRepository.save(task);
+        log.info("Created note with ID: {}", savedNote.getId());
+
+        return mapNoteToNoteResponse(savedNote);
+    }
+
+    @Override
+    public void deleteNote(Long id) {
+        taskRepository.findById(id)
+                .orElseThrow(() -> new NoteNotFoundException("Note not found with id: " + id));
+        deleteTask(id);
+    }
+
+    @Override
+    public NoteResponse updateNote(Long id, UpdateNoteRequest updateNoteRequest) {
+        log.info("Updating note with ID: {}", id);
+
+        Task note = taskRepository.findById(id)
+                .orElseThrow(() -> new NoteNotFoundException("Note not found with id: " + id));
+
+        if (updateNoteRequest.getLocation() != null) {
+            if (note.getLocation_id() != null) {
+                Location existingLocation = locationRepository.findById(note.getLocation_id()).orElse(null);
+                if (existingLocation != null && existingLocation.getPoint_id() != null) {
+                    locationPointRepository.deleteById(existingLocation.getPoint_id());
+                }
+                locationRepository.deleteById(note.getLocation_id());
+            }
+
+            // Create new location point
+            LocationPoint locationPoint = LocationPoint.builder()
+                    .latitude(updateNoteRequest.getLocation().getLatitude())
+                    .longitude(updateNoteRequest.getLocation().getLongitude())
+                    .name(updateNoteRequest.getLocation().getLocationName())
+                    .build();
+            LocationPoint savedLocationPoint = locationPointRepository.save(locationPoint);
+
+            // Create new location
+            Location location = Location.builder()
+                    .point_id(savedLocationPoint.getId())
+                    .remindByLocation(updateNoteRequest.getLocation().getRemindByLocation())
+                    .build();
+            Location savedLocation = locationRepository.save(location);
+
+            note.setLocation_id(savedLocation.getId());
+        }
+
+        if (updateNoteRequest.getTitle() != null) {
+            note.setTitle(updateNoteRequest.getTitle());
+        }
+        if (updateNoteRequest.getDescription() != null) {
+            note.setDescription(updateNoteRequest.getDescription());
+        }
+        if (updateNoteRequest.getGroupId() != null) {
+            note.setGroupId(updateNoteRequest.getGroupId());
+        }
+
+        note.setUpdatedAt(LocalDateTime.now());
+
+        Task updatedNote = taskRepository.save(note);
+        log.info("Updated note with ID: {}", updatedNote.getId());
+
+        return mapNoteToNoteResponse(updatedNote);
+    }
+
+    @Override
+    public NoteResponse getNoteById(Long id) {
+        log.info("Getting note by ID: {}", id);
+
+        Task note = taskRepository.findById(id).orElseThrow(() -> new NoteNotFoundException("Note not found with id: " + id));
+
+        return mapNoteToNoteResponse(note);
+    }
+
+    @Override
+    public List<NoteResponse> getPersonalNotesByAuthorId(Long authorId) {
+        log.info("Getting personal notes by author ID: {}", authorId);
+
+        List<Task> notes = taskRepository.findByGroupIdIsNullAndAuthorIdAndTaskType(authorId, 1);
+        return notes.stream()
+                .map(this::mapNoteToNoteResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<NoteResponse> getNotesByAuthorId(Long authorId) {
+        log.info("Getting notes by author ID: {}", authorId);
+
+        List<Task> notes = taskRepository.findByAuthorIdAndTaskType(authorId, 1);
+        return notes.stream()
+                .map(this::mapNoteToNoteResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<NoteResponse> getNotesByGroupId(Long groupId) {
+        log.info("Getting notes by group ID: {}", groupId);
+
+        List<Task> notes = taskRepository.findByGroupIdAndTaskType(groupId, 1);
+        return notes.stream()
+                .map(this::mapNoteToNoteResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public NoteDetailsResponse getNoteDetailsById(Long id) {
+        log.info("Getting note by ID: {}", id);
+
+        Task task = taskRepository.findById(id)
+                .orElseThrow(() -> new NoteNotFoundException("Note not found with id: " + id));
+
+        log.info("Note found: {}", task);
+        return mapNoteToNoteDetailsResponse(task);
+    }
+
+    public NoteResponse mapNoteToNoteResponse(Task note) {
+        if (note == null) {
+            return null;
+        }
+
+        LocationRequest locationRequest = null;
+        if (note.getLocation_id() != null) {
+            Location location = locationRepository.findById(note.getLocation_id()).orElse(null);
+            if (location != null && location.getPoint_id() != null) {
+                LocationPoint point = locationPointRepository.findById(location.getPoint_id()).orElse(null);
+                if (point != null) {
+                    locationRequest = LocationRequest.builder()
+                            .latitude(point.getLatitude())
+                            .longitude(point.getLongitude())
+                            .locationName(point.getName())
+                            .remindByLocation(location.getRemindByLocation())
+                            .build();
+                }
+            }
+        }
+
+        return NoteResponse.builder()
+                .id(note.getId())
+                .authorId(note.getAuthorId())
+                .title(note.getTitle())
+                .description(note.getDescription())
+                .location(locationRequest)
+                .groupId(note.getGroupId())
+                .createdAt(note.getCreatedAt())
+                .build();
+    }
+
+    public NoteDetailsResponse mapNoteToNoteDetailsResponse(Task note) {
+        if (note == null) {
+            return null;
+        }
+
+        return NoteDetailsResponse.builder()
+                .id(note.getId())
+                .title(note.getTitle())
+                .description(note.getDescription())
+                .authorId(note.getAuthorId())
+                .groupId(note.getGroupId())
+                .location(mapLocationToLocationResponse(locationRepository.findById(note.getLocation_id()).orElse(null)))
+                .createdAt(note.getCreatedAt())
+                .comments(getComments(note).stream().map(this::mapCommentToCommentResponse).collect(Collectors.toList()))
+                .build();
+    }
+
     public TaskDetailsResponse mapTaskToTaskDetailsResponse(Task task) {
         if (task == null) {
             return null;
@@ -363,41 +526,9 @@ public class TaskServiceImpl implements TaskService {
                 .doerId(task.getDoerId())
                 .location(mapLocationToLocationResponse(locationRepository.findById(task.getLocation_id()).orElse(null)))
                 .deadline(mapReminderToDeadlineResponse(reminderRepository.findById(task.getDeadline_id()).orElse(null)))
-                .status(task.getStatus())
-                .priority(task.getPriority())
                 .createdAt(task.getCreatedAt())
-                .subtasks(getSubtasks(task).stream().map(this::mapSubtaskToSubtaskResponse).collect(Collectors.toList()))
                 .comments(getComments(task).stream().map(this::mapCommentToCommentResponse).collect(Collectors.toList()))
                 .build();
-    }
-
-    public SubtaskResponse mapSubtaskToSubtaskResponse(Task task) {
-        if (task == null) {
-            return null;
-        }
-
-        return SubtaskResponse.builder()
-                .id(task.getId())
-                .description(task.getDescription())
-                .authorId(task.getAuthorId())
-                .groupId(task.getGroupId())
-                .doerId(task.getDoerId())
-                .createdAt(task.getCreatedAt())
-                .updatedAt(task.getUpdatedAt())
-                .status(task.getStatus())
-                .build();
-    }
-
-    public List<Task> getSubtasks(Task task) {
-        List<Task> subtasks = new ArrayList<>();
-        List<LinkedTask> linkedTasks = linkedTaskRepository.findByTaskId(task.getId());
-        for (LinkedTask linkedTask : linkedTasks) {
-            Task subtask = taskRepository.findById(linkedTask.getLinkedTaskId()).orElse(null);
-            if (subtask != null) {
-                subtasks.add(subtask);
-            }
-        }
-        return subtasks;
     }
 
     public CommentResponse mapCommentToCommentResponse(Comment comment) {
