@@ -26,7 +26,6 @@ public class TaskServiceImpl implements TaskService {
     private final LocationRepository locationRepository;
     private final LocationPointRepository locationPointRepository;
     private final ReminderRepository reminderRepository;
-    private final LinkedTaskRepository linkedTaskRepository;
     private final CommentRepository commentRepository;
 
     @Override
