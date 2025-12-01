@@ -265,6 +265,29 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    public CommentResponse addCommentToNote(Long noteId, CommentRequest commentRequest) {
+        log.info("Writing comment to note with ID: {}", noteId);
+
+        Task note = taskRepository.findById(noteId)
+                .orElseThrow(() -> new NoteNotFoundException("Note not found with id: " + noteId));
+
+        Comment comment = Comment.builder()
+                .taskId(noteId)
+                .authorId(commentRequest.getAuthorId())
+                .text(commentRequest.getText())
+                .build();
+
+        Comment savedComment = commentRepository.save(comment);
+
+        note.setUpdatedAt(LocalDateTime.now());
+        taskRepository.save(note);
+
+        log.info("Wrote comment to note with ID: {}", noteId);
+
+        return mapCommentToCommentResponse(savedComment);
+    }
+
+    @Override
     public void deleteComment(Long id) {
         log.info("Deleting comment with ID: {}", id);
 
