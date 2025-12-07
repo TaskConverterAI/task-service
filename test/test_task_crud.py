@@ -22,6 +22,8 @@ class TestTaskCreation:
         assert task["title"] == valid_task_data["title"]
         assert task["description"] == valid_task_data["description"]
         assert task["authorId"] == valid_task_data["authorId"]
+        assert task["status"] in ["DONE", "UNDONE"]
+        assert task["priority"] in ["LOW", "MIDDLE", "HIGH"]
         assert "id" in task
         assert "createdAt" in task
         assert task.get("groupId") is None
@@ -48,6 +50,29 @@ class TestTaskCreation:
         task = response.json()
         assert task["doerId"] == second_authorized_user.get("userId")
 
+    def test_create_task_with_priority(self, base_url, valid_task_data):
+        """Test creating a task with explicit priority"""
+        task_data = valid_task_data.copy()
+        task_data["priority"] = "HIGH"
+
+        response = requests.post(base_url + ENDPOINT_TASKS, json=task_data)
+
+        assert response.status_code == 201
+        task = response.json()
+        assert task["priority"] == "HIGH"
+
+    def test_create_task_default_priority(self, base_url, valid_task_data):
+        """Test that default priority is MIDDLE when not provided"""
+        task_data = valid_task_data.copy()
+        if "priority" in task_data:
+            del task_data["priority"]
+
+        response = requests.post(base_url + ENDPOINT_TASKS, json=task_data)
+
+        assert response.status_code == 201
+        task = response.json()
+        assert task["priority"] == "MIDDLE"
+
     def test_create_task_missing_title(self, base_url, valid_task_data):
         """Test creating a task without a title"""
         task_data = valid_task_data.copy()
@@ -58,7 +83,7 @@ class TestTaskCreation:
         assert response.status_code == 400
 
     def test_create_task_empty_title(self, base_url, valid_task_data):
-        """Test creating a task without a title"""
+        """Test creating a task with empty title"""
         task_data = valid_task_data.copy()
         task_data["title"] = ""
 
@@ -85,14 +110,13 @@ class TestTaskCreation:
         assert response.status_code == 400
 
     def test_create_task_missing_location(self, base_url, valid_task_data):
-        """Test creating a task without location"""
+        """Test creating a task without location (location is optional)"""
         task_data = valid_task_data.copy()
         del task_data["location"]
 
         response = requests.post(base_url + ENDPOINT_TASKS, json=task_data)
 
         assert response.status_code == 201
-
 
     @pytest.mark.parametrize("latitude,longitude",
                              [
@@ -103,31 +127,29 @@ class TestTaskCreation:
                                  (-100, 400),
                                  (100, 500)
                              ])
-    def test_create_task_invalid_location_latitude(self, base_url, valid_task_data, latitude, longitude):
-        """Test creating a task with invalid latitude"""
+    def test_create_task_invalid_location_coordinates(self, base_url, valid_task_data, latitude, longitude):
+        """Test creating a task with invalid latitude/longitude"""
         task_data = valid_task_data.copy()
-        task_data["location"]["latitude"] = latitude # latitude should be from -90 to 90
-        task_data["location"]["longitude"] = longitude # longitude shold be from -180 to 180
+        task_data["location"]["latitude"] = latitude  # latitude should be from -90 to 90
+        task_data["location"]["longitude"] = longitude  # longitude should be from -180 to 180
 
         response = requests.post(base_url + ENDPOINT_TASKS, json=task_data)
 
         assert response.status_code == 400
-
 
     def test_create_task_title_too_long(self, base_url, valid_task_data):
-        """Test creating a task with title exceeding max length"""
+        """Test creating a task with title exceeding max length (200)"""
         task_data = valid_task_data.copy()
-        task_data["title"] = "A" * 260
+        task_data["title"] = "A" * 201  # Max is 200
 
         response = requests.post(base_url + ENDPOINT_TASKS, json=task_data)
 
         assert response.status_code == 400
 
-
     def test_create_task_description_too_long(self, base_url, valid_task_data):
-        """Test creating a task with description exceeding max length"""
+        """Test creating a task with description exceeding max length (1000)"""
         task_data = valid_task_data.copy()
-        task_data["description"] = "A" * 260  # Max is 255
+        task_data["description"] = "A" * 1001  # Max is 1000
 
         response = requests.post(base_url + ENDPOINT_TASKS, json=task_data)
 
@@ -146,6 +168,8 @@ class TestTaskRetrieval:
         task = response.json()
         assert task["id"] == created_task["id"]
         assert task["title"] == created_task["title"]
+        assert "status" in task  # Added: verify status field
+        assert "priority" in task  # Added: verify priority field
 
     def test_get_task_by_id_not_found(self, base_url):
         """Test retrieving a non-existent task"""
@@ -238,6 +262,32 @@ class TestTaskUpdate:
         updated_task = response.json()
         assert updated_task["description"] == "Updated task description"
 
+    def test_update_task_status(self, base_url, created_task):
+        """Test updating a task's status"""
+        endpoint = ENDPOINT_TASK_BY_ID.format(taskId=created_task["id"])
+        update_data = {
+            "status": "DONE"
+        }
+
+        response = requests.put(base_url + endpoint, json=update_data)
+
+        assert response.status_code == 200
+        updated_task = response.json()
+        assert updated_task["status"] == "DONE"
+
+    def test_update_task_priority(self, base_url, created_task):
+        """Test updating a task's priority"""
+        endpoint = ENDPOINT_TASK_BY_ID.format(taskId=created_task["id"])
+        update_data = {
+            "priority": "HIGH"
+        }
+
+        response = requests.put(base_url + endpoint, json=update_data)
+
+        assert response.status_code == 200
+        updated_task = response.json()
+        assert updated_task["priority"] == "HIGH"
+
     def test_update_task_doer(self, base_url, created_task, second_authorized_user):
         """Test updating a task's doer"""
         endpoint = ENDPOINT_TASK_BY_ID.format(taskId=created_task["id"])
@@ -298,10 +348,21 @@ class TestTaskUpdate:
         assert response.status_code == 404
 
     def test_update_task_invalid_title_length(self, base_url, created_task):
-        """Test updating a task with invalid title length"""
+        """Test updating a task with invalid title length (max 200)"""
         endpoint = ENDPOINT_TASK_BY_ID.format(taskId=created_task["id"])
         update_data = {
-            "title": "A" * 256  # Exceeds max length
+            "title": "A" * 201  # Exceeds max length of 200
+        }
+
+        response = requests.put(base_url + endpoint, json=update_data)
+
+        assert response.status_code == 400
+
+    def test_update_task_empty_title(self, base_url, created_task):
+        """Test updating a task with empty title"""
+        endpoint = ENDPOINT_TASK_BY_ID.format(taskId=created_task["id"])
+        update_data = {
+            "title": ""
         }
 
         response = requests.put(base_url + endpoint, json=update_data)

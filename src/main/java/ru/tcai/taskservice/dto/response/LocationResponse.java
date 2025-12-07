@@ -12,6 +12,6 @@ import lombok.NoArgsConstructor;
 public class LocationResponse {
     private Double latitude;
     private Double longitude;
-    private String locationName;
+    private String name;
     private Boolean remindByLocation;
 }

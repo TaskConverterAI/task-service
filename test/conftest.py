@@ -17,6 +17,16 @@ ENDPOINT_TASK_DETAILS = '/tasks/details/{taskId}'
 ENDPOINT_ADD_SUBTASK = '/tasks/{taskId}/subtask'
 ENDPOINT_UPDATE_SUBTASK_STATUS = '/tasks/subtasks/{subtaskId}/status'
 
+# Note Endpoints (for completeness based on OpenAPI spec)
+ENDPOINT_NOTES = '/tasks/note'
+ENDPOINT_NOTE_BY_ID = '/tasks/note/{noteId}'
+ENDPOINT_NOTE_COMMENT = '/tasks/note/{noteId}/comment'
+ENDPOINT_NOTE_COMMENT_DELETE = '/tasks/note/comment/{commentId}'
+ENDPOINT_PERSONAL_NOTES = '/tasks/note/personal/{userId}'
+ENDPOINT_USER_NOTES = '/tasks/note/user/{userId}'
+ENDPOINT_GROUP_NOTES = '/tasks/note/group/{groupId}'
+ENDPOINT_NOTE_DETAILS = '/tasks/note/details/{noteId}'
+
 @pytest.fixture
 def random_user_id():
     """Generates a random user ID"""
@@ -142,5 +152,62 @@ def task_with_comment(base_url, created_task, registered_authorized_user):
     comment = response.json()
     return {
         "task": created_task,
+        "comment": comment
+    }
+
+
+# Note-related fixtures
+@pytest.fixture
+def valid_note_data(registered_authorized_user, valid_location_data):
+    """Generates valid note creation data"""
+    return {
+        "title": "Test Note " + ''.join(random.choices(string.ascii_letters, k=6)),
+        "description": "This is a test note description",
+        "authorId": registered_authorized_user.get("userId"),
+        "location": valid_location_data
+    }
+
+
+@pytest.fixture
+def valid_group_note_data(registered_authorized_user, valid_location_data):
+    """Generates valid group note creation data"""
+    return {
+        "title": "Group Note " + ''.join(random.choices(string.ascii_letters, k=6)),
+        "description": "This is a group note description",
+        "authorId": registered_authorized_user.get("userId"),
+        "groupId": random.randint(1, 100),
+        "location": valid_location_data
+    }
+
+
+@pytest.fixture
+def created_note(base_url, valid_note_data):
+    """Creates a note and returns the note data"""
+    response = requests.post(base_url + ENDPOINT_NOTES, json=valid_note_data)
+    assert response.status_code == 201
+    return response.json()
+
+
+@pytest.fixture
+def created_group_note(base_url, valid_group_note_data):
+    """Creates a group note and returns the note data"""
+    response = requests.post(base_url + ENDPOINT_NOTES, json=valid_group_note_data)
+    assert response.status_code == 201
+    return response.json()
+
+
+@pytest.fixture
+def note_with_comment(base_url, created_note, registered_authorized_user):
+    """Creates a note with a comment"""
+    comment_data = {
+        "authorId": registered_authorized_user.get("userId"),
+        "text": "This is a test note comment"
+    }
+    endpoint = ENDPOINT_NOTE_COMMENT.format(noteId=created_note["id"])
+    response = requests.put(base_url + endpoint, json=comment_data)
+    assert response.status_code == 200
+    comment = response.json()
+    return {
+        "note": created_note,
         "comment": comment
     }

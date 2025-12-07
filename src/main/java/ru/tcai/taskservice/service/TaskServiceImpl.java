@@ -37,7 +37,7 @@ public class TaskServiceImpl implements TaskService {
             LocationPoint locationPoint = LocationPoint.builder()
                     .latitude(taskRequest.getLocation().getLatitude())
                     .longitude(taskRequest.getLocation().getLongitude())
-                    .name(taskRequest.getLocation().getLocationName())
+                    .name(taskRequest.getLocation().getName())
                     .build();
             LocationPoint savedLocationPoint = locationPointRepository.save(locationPoint);
             locationPointId = savedLocationPoint.getId();
@@ -179,7 +179,7 @@ public class TaskServiceImpl implements TaskService {
             LocationPoint locationPoint = LocationPoint.builder()
                     .latitude(updateTaskRequest.getLocation().getLatitude())
                     .longitude(updateTaskRequest.getLocation().getLongitude())
-                    .name(updateTaskRequest.getLocation().getLocationName())
+                    .name(updateTaskRequest.getLocation().getName())
                     .build();
             LocationPoint savedLocationPoint = locationPointRepository.save(locationPoint);
 
@@ -338,7 +338,7 @@ public class TaskServiceImpl implements TaskService {
             LocationPoint locationPoint = LocationPoint.builder()
                     .latitude(noteRequest.getLocation().getLatitude())
                     .longitude(noteRequest.getLocation().getLongitude())
-                    .name(noteRequest.getLocation().getLocationName())
+                    .name(noteRequest.getLocation().getName())
                     .build();
             LocationPoint savedLocationPoint = locationPointRepository.save(locationPoint);
             locationPointId = savedLocationPoint.getId();
@@ -402,7 +402,7 @@ public class TaskServiceImpl implements TaskService {
             LocationPoint locationPoint = LocationPoint.builder()
                     .latitude(updateNoteRequest.getLocation().getLatitude())
                     .longitude(updateNoteRequest.getLocation().getLongitude())
-                    .name(updateNoteRequest.getLocation().getLocationName())
+                    .name(updateNoteRequest.getLocation().getName())
                     .build();
             LocationPoint savedLocationPoint = locationPointRepository.save(locationPoint);
 
@@ -498,7 +498,7 @@ public class TaskServiceImpl implements TaskService {
                     locationRequest = LocationRequest.builder()
                             .latitude(point.getLatitude())
                             .longitude(point.getLongitude())
-                            .locationName(point.getName())
+                            .name(point.getName())
                             .remindByLocation(location.getRemindByLocation())
                             .build();
                 }
@@ -592,7 +592,7 @@ public class TaskServiceImpl implements TaskService {
         return LocationResponse.builder()
                 .latitude(locationPoint.getLatitude())
                 .longitude(locationPoint.getLongitude())
-                .locationName(locationPoint.getName())
+                .name(locationPoint.getName())
                 .remindByLocation(location.getRemindByLocation() != null ? location.getRemindByLocation() : false)
                 .build();
     }
@@ -605,7 +605,7 @@ public class TaskServiceImpl implements TaskService {
                 .point_id(LocationPoint.builder()
                         .latitude(locationRequest.getLatitude())
                         .longitude(locationRequest.getLongitude())
-                        .name(locationRequest.getLocationName())
+                        .name(locationRequest.getName())
                         .build().getId())
                 .remindByLocation(locationRequest.getRemindByLocation() != null ? locationRequest.getRemindByLocation() : false)
                 .build();
@@ -635,7 +635,7 @@ public class TaskServiceImpl implements TaskService {
                     locationRequest = LocationRequest.builder()
                             .latitude(point.getLatitude())
                             .longitude(point.getLongitude())
-                            .locationName(point.getName())
+                            .name(point.getName())
                             .remindByLocation(location.getRemindByLocation())
                             .build();
                 }
