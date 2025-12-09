@@ -25,4 +25,6 @@ public class TaskRequest {
     private Long doerId;
 
     private String priority;
+
+    private String status;
 }

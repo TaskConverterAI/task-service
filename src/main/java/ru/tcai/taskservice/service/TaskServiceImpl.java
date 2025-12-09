@@ -72,6 +72,14 @@ public class TaskServiceImpl implements TaskService {
             priority = "MIDDLE";
         }
 
+        String status = taskRequest.getStatus();
+        if (status == null) {
+            status = "UNDONE";
+        } else if (!status.equals("UNDONE") &&
+                !status.equals("DONE")) {
+            status = "UNDONE";
+        }
+
         LocalDateTime now = LocalDateTime.now();
 
         Task task = Task.builder()
@@ -83,7 +91,7 @@ public class TaskServiceImpl implements TaskService {
                 .authorId(taskRequest.getAuthorId())
                 .groupId(taskRequest.getGroupId())
                 .doerId(taskRequest.getDoerId())
-                .status("UNDONE")
+                .status(status)
                 .priority(priority)
                 .createdAt(now)
                 .updatedAt(now)
@@ -550,6 +558,8 @@ public class TaskServiceImpl implements TaskService {
                 .deadline(mapReminderToDeadlineResponse(reminderRepository.findById(task.getDeadline_id()).orElse(null)))
                 .createdAt(task.getCreatedAt())
                 .comments(getComments(task).stream().map(this::mapCommentToCommentResponse).collect(Collectors.toList()))
+                .priority(task.getPriority())
+                .status(task.getStatus())
                 .build();
     }
 
