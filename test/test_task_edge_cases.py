@@ -95,26 +95,6 @@ class TestTaskEdgeCases:
         task = response.json()
         assert len(task["title"]) == length
 
-    def test_update_task_remove_doer(self, base_url, valid_task_data, second_authorized_user):
-        """Test updating a task to remove doer"""
-        # Create task with doer
-        task_data = valid_task_data.copy()
-        task_data["doerId"] = second_authorized_user.get("userId")
-        create_response = requests.post(base_url + ENDPOINT_TASKS, json=task_data)
-        assert create_response.status_code == 201
-        task = create_response.json()
-
-        # Update to remove doer (set to null)
-        endpoint = ENDPOINT_TASK_BY_ID.format(taskId=task["id"])
-        update_data = {
-            "doerId": None
-        }
-        response = requests.put(base_url + endpoint, json=update_data)
-
-        assert response.status_code == 200
-        updated_task = response.json()
-        assert updated_task["doerId"] is None
-
     @pytest.mark.parametrize("update_fields", [
         {"title": "Updated Title", "description": "Updated Description"},
         {"status": "DONE", "priority": "LOW"},

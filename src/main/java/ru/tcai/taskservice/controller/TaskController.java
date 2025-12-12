@@ -1,5 +1,6 @@
 package ru.tcai.taskservice.controller;
 
+import jakarta.validation.Valid;
 import ru.tcai.taskservice.dto.request.*;
 import ru.tcai.taskservice.dto.response.*;
 import ru.tcai.taskservice.service.TaskService;
@@ -18,7 +19,7 @@ public class TaskController {
     private final TaskService taskService;
 
     @PostMapping
-    public ResponseEntity<TaskResponse> createTask(@RequestBody TaskRequest taskRequest) {
+    public ResponseEntity<TaskResponse> createTask(@RequestBody @Valid TaskRequest taskRequest) {
         TaskResponse response = taskService.createTask(taskRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -61,14 +62,14 @@ public class TaskController {
 
     @PutMapping("/{taskId}")
     public ResponseEntity<TaskResponse> updateTask(@PathVariable Long taskId,
-                                                   @RequestBody UpdateTaskRequest updateTaskRequest) {
+                                                   @RequestBody @Valid UpdateTaskRequest updateTaskRequest) {
         TaskResponse response = taskService.updateTask(taskId, updateTaskRequest);
         return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{taskId}/comment")
     public ResponseEntity<CommentResponse> addCommentToTask(@PathVariable Long taskId,
-                                                            @RequestBody CommentRequest commentRequest) {
+                                                            @RequestBody @Valid CommentRequest commentRequest) {
         CommentResponse response = taskService.addCommentToTask(taskId, commentRequest);
         return ResponseEntity.ok(response);
     }
@@ -86,7 +87,7 @@ public class TaskController {
     }
 
     @PostMapping("/note")
-    public ResponseEntity<NoteResponse> createNote(@RequestBody NoteRequest noteRequest) {
+    public ResponseEntity<NoteResponse> createNote(@RequestBody @Valid NoteRequest noteRequest) {
         NoteResponse response = taskService.createNote(noteRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -117,7 +118,7 @@ public class TaskController {
 
     @PutMapping("/note/{id}")
     public ResponseEntity<NoteResponse> updateNote(@PathVariable Long id,
-                                                   @RequestBody UpdateNoteRequest updateNoteRequest) {
+                                                   @RequestBody @Valid UpdateNoteRequest updateNoteRequest) {
         NoteResponse response = taskService.updateNote(id, updateNoteRequest);
         return ResponseEntity.ok(response);
     }
@@ -136,7 +137,7 @@ public class TaskController {
 
     @PutMapping("/note/{noteId}/comment")
     public ResponseEntity<CommentResponse> addCommentToNote(@PathVariable Long noteId,
-                                                            @RequestBody CommentRequest commentRequest) {
+                                                            @RequestBody @Valid CommentRequest commentRequest) {
         CommentResponse response = taskService.addCommentToNote(noteId, commentRequest);
         return ResponseEntity.ok(response);
     }

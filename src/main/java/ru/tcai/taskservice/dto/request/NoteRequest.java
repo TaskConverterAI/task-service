@@ -1,5 +1,9 @@
 package ru.tcai.taskservice.dto.request;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,12 +14,19 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NoteRequest {
+    @NotBlank
+    @NotNull
+    @Size(min = 1, max = 255)
     private String title;
 
+    @NotNull
+    @Size(min = 1, max = 255)
     private String description;
 
+    @Valid
     private LocationRequest location;
 
+    @NotNull
     private Long authorId;
 
     private Long groupId;

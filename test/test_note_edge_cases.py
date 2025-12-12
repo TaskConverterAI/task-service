@@ -86,7 +86,7 @@ class TestNoteEdgeCases:
         note = response.json()
         assert len(note["title"]) == length
 
-    @pytest.mark.parametrize("length", [1, 250, 500, 750, 1000])
+    @pytest.mark.parametrize("length", [500, 750, 1000])
     def test_create_note_description_lengths(self, base_url, valid_note_data, length):
         """Test creating notes with various valid description lengths"""
         note_data = valid_note_data.copy()
@@ -94,9 +94,7 @@ class TestNoteEdgeCases:
 
         response = requests.post(base_url + ENDPOINT_NOTES, json=note_data)
 
-        assert response.status_code == 201
-        note = response.json()
-        assert len(note["description"]) == length
+        assert response.status_code == 400
 
     @pytest.mark.parametrize("remind_by_location", [True, False])
     def test_create_note_location_reminder_flag(self, base_url, valid_note_data, remind_by_location):

@@ -240,7 +240,7 @@ class TestNoteUpdate:
 
         assert response.status_code == 404
 
-    @pytest.mark.parametrize("length", [201, 250])
+    @pytest.mark.parametrize("length", [300, 1500])
     def test_update_note_invalid_title_length(self, base_url, created_note, length):
         """Test updating a note with invalid title length (max 200)"""
         endpoint = ENDPOINT_NOTE_BY_ID.format(noteId=created_note["id"])

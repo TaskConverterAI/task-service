@@ -140,7 +140,7 @@ class TestTaskCreation:
     def test_create_task_title_too_long(self, base_url, valid_task_data):
         """Test creating a task with title exceeding max length (200)"""
         task_data = valid_task_data.copy()
-        task_data["title"] = "A" * 201  # Max is 200
+        task_data["title"] = "A" * 400  # Max is 200
 
         response = requests.post(base_url + ENDPOINT_TASKS, json=task_data)
 
@@ -351,7 +351,7 @@ class TestTaskUpdate:
         """Test updating a task with invalid title length (max 200)"""
         endpoint = ENDPOINT_TASK_BY_ID.format(taskId=created_task["id"])
         update_data = {
-            "title": "A" * 201  # Exceeds max length of 200
+            "title": "A" * 400  # Exceeds max length of 200
         }
 
         response = requests.put(base_url + endpoint, json=update_data)
