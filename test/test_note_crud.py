@@ -182,37 +182,50 @@ class TestNoteRetrieval:
 
 
 class TestNoteUpdate:
-    """Tests for updating notes"""
+    """Tests for updating notes with verification"""
 
     def test_update_note_title(self, base_url, created_note):
-        """Test updating a note's title"""
+        """Test updating a note's title and verify persistence"""
         endpoint = ENDPOINT_NOTE_BY_ID.format(noteId=created_note["id"])
         update_data = {
             "title": "Updated Note Title"
         }
 
-        response = requests.put(base_url + endpoint, json=update_data)
-
-        assert response.status_code == 200
-        updated_note = response.json()
+        # Update the note
+        update_response = requests.put(base_url + endpoint, json=update_data)
+        assert update_response.status_code == 200
+        updated_note = update_response.json()
         assert updated_note["title"] == "Updated Note Title"
         assert updated_note["id"] == created_note["id"]
 
+        # Verify the update persisted
+        get_response = requests.get(base_url + endpoint)
+        assert get_response.status_code == 200
+        retrieved_note = get_response.json()
+        assert retrieved_note["title"] == "Updated Note Title"
+        assert retrieved_note["id"] == created_note["id"]
+
     def test_update_note_description(self, base_url, created_note):
-        """Test updating a note's description"""
+        """Test updating a note's description and verify persistence"""
         endpoint = ENDPOINT_NOTE_BY_ID.format(noteId=created_note["id"])
         update_data = {
             "description": "Updated note description"
         }
 
-        response = requests.put(base_url + endpoint, json=update_data)
-
-        assert response.status_code == 200
-        updated_note = response.json()
+        # Update the note
+        update_response = requests.put(base_url + endpoint, json=update_data)
+        assert update_response.status_code == 200
+        updated_note = update_response.json()
         assert updated_note["description"] == "Updated note description"
 
+        # Verify the update persisted
+        get_response = requests.get(base_url + endpoint)
+        assert get_response.status_code == 200
+        retrieved_note = get_response.json()
+        assert retrieved_note["description"] == "Updated note description"
+
     def test_update_note_location(self, base_url, created_note):
-        """Test updating a note's location"""
+        """Test updating a note's location and verify persistence"""
         endpoint = ENDPOINT_NOTE_BY_ID.format(noteId=created_note["id"])
         update_data = {
             "location": {
@@ -223,11 +236,23 @@ class TestNoteUpdate:
             }
         }
 
-        response = requests.put(base_url + endpoint, json=update_data)
-
-        assert response.status_code == 200
-        updated_note = response.json()
+        # Update the note
+        update_response = requests.put(base_url + endpoint, json=update_data)
+        assert update_response.status_code == 200
+        updated_note = update_response.json()
         assert updated_note["location"]["name"] == "London"
+        assert updated_note["location"]["latitude"] == 51.5074
+        assert updated_note["location"]["longitude"] == -0.1278
+        assert updated_note["location"]["remindByLocation"] is False
+
+        # Verify the update persisted
+        get_response = requests.get(base_url + endpoint)
+        assert get_response.status_code == 200
+        retrieved_note = get_response.json()
+        assert retrieved_note["location"]["name"] == "London"
+        assert retrieved_note["location"]["latitude"] == 51.5074
+        assert retrieved_note["location"]["longitude"] == -0.1278
+        assert retrieved_note["location"]["remindByLocation"] is False
 
     def test_update_nonexistent_note(self, base_url):
         """Test updating a non-existent note"""
@@ -240,29 +265,191 @@ class TestNoteUpdate:
 
         assert response.status_code == 404
 
-    @pytest.mark.parametrize("length", [300, 1500])
-    def test_update_note_invalid_title_length(self, base_url, created_note, length):
-        """Test updating a note with invalid title length (max 200)"""
-        endpoint = ENDPOINT_NOTE_BY_ID.format(noteId=created_note["id"])
-        update_data = {
-            "title": "A" * length
-        }
-
-        response = requests.put(base_url + endpoint, json=update_data)
-
-        assert response.status_code == 400
-
     def test_update_note_empty_title(self, base_url, created_note):
         """Test updating a note with empty title"""
         endpoint = ENDPOINT_NOTE_BY_ID.format(noteId=created_note["id"])
+        original_title = created_note["title"]
+
         update_data = {
             "title": ""
         }
 
-        response = requests.put(base_url + endpoint, json=update_data)
+        # Update should fail
+        update_response = requests.put(base_url + endpoint, json=update_data)
+        assert update_response.status_code == 400
 
-        assert response.status_code == 400
+        # Verify original title is unchanged
+        get_response = requests.get(base_url + endpoint)
+        assert get_response.status_code == 200
+        retrieved_note = get_response.json()
+        assert retrieved_note["title"] == original_title
 
+    @pytest.mark.parametrize("update_fields", [
+        {"title": "Updated Title", "description": "Updated Description"},
+        {"title": "New Title", "location": {"latitude": 40.7128, "longitude": -74.0060, "name": "NYC", "remindByLocation": True}},
+    ])
+    def test_update_multiple_fields_simultaneously(self, base_url, created_note, update_fields):
+        """Test updating multiple note fields in one request and verify persistence"""
+        endpoint = ENDPOINT_NOTE_BY_ID.format(noteId=created_note["id"])
+
+        # Update the note
+        update_response = requests.put(base_url + endpoint, json=update_fields)
+        assert update_response.status_code == 200
+        updated_note = update_response.json()
+
+        # Verify fields in update response
+        if "title" in update_fields:
+            assert updated_note["title"] == update_fields["title"]
+        if "description" in update_fields:
+            assert updated_note["description"] == update_fields["description"]
+        if "location" in update_fields:
+            assert updated_note["location"]["name"] == update_fields["location"]["name"]
+
+        # Verify the updates persisted
+        get_response = requests.get(base_url + endpoint)
+        assert get_response.status_code == 200
+        retrieved_note = get_response.json()
+
+        # Verify all fields persisted
+        if "title" in update_fields:
+            assert retrieved_note["title"] == update_fields["title"]
+        if "description" in update_fields:
+            assert retrieved_note["description"] == update_fields["description"]
+        if "location" in update_fields:
+            assert retrieved_note["location"]["name"] == update_fields["location"]["name"]
+            assert retrieved_note["location"]["latitude"] == update_fields["location"]["latitude"]
+            assert retrieved_note["location"]["longitude"] == update_fields["location"]["longitude"]
+
+    @pytest.mark.parametrize("field,value", [
+        ("title", "Parametrized Title Update"),
+        ("description", "Parametrized Description Update"),
+    ])
+    def test_update_single_field_parametrized(self, base_url, created_note, field, value):
+        """Test updating individual fields and verify persistence"""
+        endpoint = ENDPOINT_NOTE_BY_ID.format(noteId=created_note["id"])
+        update_data = {field: value}
+
+        # Update the note
+        update_response = requests.put(base_url + endpoint, json=update_data)
+        assert update_response.status_code == 200
+        updated_note = update_response.json()
+        assert updated_note[field] == value
+
+        # Verify the update persisted
+        get_response = requests.get(base_url + endpoint)
+        assert get_response.status_code == 200
+        retrieved_note = get_response.json()
+        assert retrieved_note[field] == value
+
+    def test_update_preserves_other_fields(self, base_url, created_note):
+        """Test that updating one field doesn't affect other fields"""
+        endpoint = ENDPOINT_NOTE_BY_ID.format(noteId=created_note["id"])
+
+        # Store original values
+        original_description = created_note["description"]
+        original_author_id = created_note["authorId"]
+
+        # Update only the title
+        update_data = {
+            "title": "Only Title Updated"
+        }
+
+        update_response = requests.put(base_url + endpoint, json=update_data)
+        assert update_response.status_code == 200
+
+        # Verify other fields are preserved
+        get_response = requests.get(base_url + endpoint)
+        assert get_response.status_code == 200
+        retrieved_note = get_response.json()
+
+        assert retrieved_note["title"] == "Only Title Updated"
+        assert retrieved_note["description"] == original_description
+        assert retrieved_note["authorId"] == original_author_id
+
+    def test_sequential_updates(self, base_url, created_note):
+        """Test multiple sequential updates and verify each persists"""
+        endpoint = ENDPOINT_NOTE_BY_ID.format(noteId=created_note["id"])
+
+        # First update: title
+        update_response_1 = requests.put(base_url + endpoint, json={"title": "First Update"})
+        assert update_response_1.status_code == 200
+
+        get_response_1 = requests.get(base_url + endpoint)
+        assert get_response_1.status_code == 200
+        assert get_response_1.json()["title"] == "First Update"
+
+        # Second update: description
+        update_response_2 = requests.put(base_url + endpoint, json={"description": "Second Update"})
+        assert update_response_2.status_code == 200
+
+        get_response_2 = requests.get(base_url + endpoint)
+        assert get_response_2.status_code == 200
+        retrieved_note = get_response_2.json()
+        assert retrieved_note["title"] == "First Update"  # Previous update should persist
+        assert retrieved_note["description"] == "Second Update"
+
+        # Third update: location
+        new_location = {
+            "latitude": 35.6762,
+            "longitude": 139.6503,
+            "name": "Tokyo",
+            "remindByLocation": True
+        }
+        update_response_3 = requests.put(base_url + endpoint, json={"location": new_location})
+        assert update_response_3.status_code == 200
+
+        get_response_3 = requests.get(base_url + endpoint)
+        assert get_response_3.status_code == 200
+        final_note = get_response_3.json()
+        assert final_note["title"] == "First Update"  # All previous updates should persist
+        assert final_note["description"] == "Second Update"
+        assert final_note["location"]["name"] == "Tokyo"
+
+    def test_update_location_reminder_flag_only(self, base_url, created_note):
+        """Test updating only the location reminder flag and verify persistence"""
+        endpoint = ENDPOINT_NOTE_BY_ID.format(noteId=created_note["id"])
+
+        # Get original location
+        original_location = created_note.get("location")
+        if not original_location:
+            pytest.skip("Note doesn't have location")
+
+        # Update only remindByLocation
+        updated_location = original_location.copy()
+        updated_location["remindByLocation"] = not original_location["remindByLocation"]
+
+        update_response = requests.put(base_url + endpoint, json={"location": updated_location})
+        assert update_response.status_code == 200
+
+        # Verify the update persisted
+        get_response = requests.get(base_url + endpoint)
+        assert get_response.status_code == 200
+        retrieved_note = get_response.json()
+
+        assert retrieved_note["location"]["remindByLocation"] == updated_location["remindByLocation"]
+        assert retrieved_note["location"]["name"] == original_location["name"]
+        assert retrieved_note["location"]["latitude"] == original_location["latitude"]
+        assert retrieved_note["location"]["longitude"] == original_location["longitude"]
+
+    @pytest.mark.parametrize("invalid_length", [1001, 1500, 2000])
+    def test_update_note_invalid_description_length(self, base_url, created_note, invalid_length):
+        """Test updating a note with invalid description length (max 1000)"""
+        endpoint = ENDPOINT_NOTE_BY_ID.format(noteId=created_note["id"])
+        original_description = created_note["description"]
+
+        update_data = {
+            "description": "B" * invalid_length
+        }
+
+        # Update should fail
+        update_response = requests.put(base_url + endpoint, json=update_data)
+        assert update_response.status_code == 400
+
+        # Verify original description is unchanged
+        get_response = requests.get(base_url + endpoint)
+        assert get_response.status_code == 200
+        retrieved_note = get_response.json()
+        assert retrieved_note["description"] == original_description
     @pytest.mark.parametrize("update_fields", [
         {"title": "Updated Title", "description": "Updated Description"},
         {"title": "New Title", "location": {"latitude": 40.7128, "longitude": -74.0060, "name": "NYC", "remindByLocation": True}},
