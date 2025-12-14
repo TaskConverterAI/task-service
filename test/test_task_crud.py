@@ -233,76 +233,107 @@ class TestTaskRetrieval:
 
 
 class TestTaskUpdate:
-    """Tests for updating tasks"""
+    """Tests for updating tasks with verification"""
 
     def test_update_task_title(self, base_url, created_task):
-        """Test updating a task's title"""
+        """Test updating a task's title and verify persistence"""
         endpoint = ENDPOINT_TASK_BY_ID.format(taskId=created_task["id"])
         update_data = {
             "title": "Updated Task Title"
         }
 
-        response = requests.put(base_url + endpoint, json=update_data)
-
-        assert response.status_code == 200
-        updated_task = response.json()
+        # Update the task
+        update_response = requests.put(base_url + endpoint, json=update_data)
+        assert update_response.status_code == 200
+        updated_task = update_response.json()
         assert updated_task["title"] == "Updated Task Title"
         assert updated_task["id"] == created_task["id"]
 
+        # Verify the update persisted
+        get_response = requests.get(base_url + endpoint)
+        assert get_response.status_code == 200
+        retrieved_task = get_response.json()
+        assert retrieved_task["title"] == "Updated Task Title"
+        assert retrieved_task["id"] == created_task["id"]
+
     def test_update_task_description(self, base_url, created_task):
-        """Test updating a task's description"""
+        """Test updating a task's description and verify persistence"""
         endpoint = ENDPOINT_TASK_BY_ID.format(taskId=created_task["id"])
         update_data = {
             "description": "Updated task description"
         }
 
-        response = requests.put(base_url + endpoint, json=update_data)
-
-        assert response.status_code == 200
-        updated_task = response.json()
+        # Update the task
+        update_response = requests.put(base_url + endpoint, json=update_data)
+        assert update_response.status_code == 200
+        updated_task = update_response.json()
         assert updated_task["description"] == "Updated task description"
 
+        # Verify the update persisted
+        get_response = requests.get(base_url + endpoint)
+        assert get_response.status_code == 200
+        retrieved_task = get_response.json()
+        assert retrieved_task["description"] == "Updated task description"
+
     def test_update_task_status(self, base_url, created_task):
-        """Test updating a task's status"""
+        """Test updating a task's status and verify persistence"""
         endpoint = ENDPOINT_TASK_BY_ID.format(taskId=created_task["id"])
         update_data = {
             "status": "DONE"
         }
 
-        response = requests.put(base_url + endpoint, json=update_data)
-
-        assert response.status_code == 200
-        updated_task = response.json()
+        # Update the task
+        update_response = requests.put(base_url + endpoint, json=update_data)
+        assert update_response.status_code == 200
+        updated_task = update_response.json()
         assert updated_task["status"] == "DONE"
 
+        # Verify the update persisted
+        get_response = requests.get(base_url + endpoint)
+        assert get_response.status_code == 200
+        retrieved_task = get_response.json()
+        assert retrieved_task["status"] == "DONE"
+
     def test_update_task_priority(self, base_url, created_task):
-        """Test updating a task's priority"""
+        """Test updating a task's priority and verify persistence"""
         endpoint = ENDPOINT_TASK_BY_ID.format(taskId=created_task["id"])
         update_data = {
             "priority": "HIGH"
         }
 
-        response = requests.put(base_url + endpoint, json=update_data)
-
-        assert response.status_code == 200
-        updated_task = response.json()
+        # Update the task
+        update_response = requests.put(base_url + endpoint, json=update_data)
+        assert update_response.status_code == 200
+        updated_task = update_response.json()
         assert updated_task["priority"] == "HIGH"
 
+        # Verify the update persisted
+        get_response = requests.get(base_url + endpoint)
+        assert get_response.status_code == 200
+        retrieved_task = get_response.json()
+        assert retrieved_task["priority"] == "HIGH"
+
     def test_update_task_doer(self, base_url, created_task, second_authorized_user):
-        """Test updating a task's doer"""
+        """Test updating a task's doer and verify persistence"""
         endpoint = ENDPOINT_TASK_BY_ID.format(taskId=created_task["id"])
         update_data = {
             "doerId": second_authorized_user.get("userId")
         }
 
-        response = requests.put(base_url + endpoint, json=update_data)
-
-        assert response.status_code == 200
-        updated_task = response.json()
+        # Update the task
+        update_response = requests.put(base_url + endpoint, json=update_data)
+        assert update_response.status_code == 200
+        updated_task = update_response.json()
         assert updated_task["doerId"] == second_authorized_user.get("userId")
 
+        # Verify the update persisted
+        get_response = requests.get(base_url + endpoint)
+        assert get_response.status_code == 200
+        retrieved_task = get_response.json()
+        assert retrieved_task["doerId"] == second_authorized_user.get("userId")
+
     def test_update_task_location(self, base_url, created_task):
-        """Test updating a task's location"""
+        """Test updating a task's location and verify persistence"""
         endpoint = ENDPOINT_TASK_BY_ID.format(taskId=created_task["id"])
         update_data = {
             "location": {
@@ -313,14 +344,26 @@ class TestTaskUpdate:
             }
         }
 
-        response = requests.put(base_url + endpoint, json=update_data)
-
-        assert response.status_code == 200
-        updated_task = response.json()
+        # Update the task
+        update_response = requests.put(base_url + endpoint, json=update_data)
+        assert update_response.status_code == 200
+        updated_task = update_response.json()
         assert updated_task["location"]["name"] == "London"
+        assert updated_task["location"]["latitude"] == 51.5074
+        assert updated_task["location"]["longitude"] == -0.1278
+        assert updated_task["location"]["remindByLocation"] is False
+
+        # Verify the update persisted
+        get_response = requests.get(base_url + endpoint)
+        assert get_response.status_code == 200
+        retrieved_task = get_response.json()
+        assert retrieved_task["location"]["name"] == "London"
+        assert retrieved_task["location"]["latitude"] == 51.5074
+        assert retrieved_task["location"]["longitude"] == -0.1278
+        assert retrieved_task["location"]["remindByLocation"] is False
 
     def test_update_task_deadline(self, base_url, created_task):
-        """Test updating a task's deadline"""
+        """Test updating a task's deadline and verify persistence"""
         endpoint = ENDPOINT_TASK_BY_ID.format(taskId=created_task["id"])
         new_deadline = datetime.utcnow() + timedelta(days=14)
         update_data = {
@@ -330,11 +373,19 @@ class TestTaskUpdate:
             }
         }
 
-        response = requests.put(base_url + endpoint, json=update_data)
-
-        assert response.status_code == 200
-        updated_task = response.json()
+        # Update the task
+        update_response = requests.put(base_url + endpoint, json=update_data)
+        assert update_response.status_code == 200
+        updated_task = update_response.json()
         assert updated_task["deadline"]["remindByTime"] is False
+
+        # Verify the update persisted
+        get_response = requests.get(base_url + endpoint)
+        assert get_response.status_code == 200
+        retrieved_task = get_response.json()
+        assert retrieved_task["deadline"]["remindByTime"] is False
+        # Verify the deadline time was updated (allowing for minor time differences)
+        assert "time" in retrieved_task["deadline"]
 
     def test_update_nonexistent_task(self, base_url):
         """Test updating a non-existent task"""
@@ -350,25 +401,149 @@ class TestTaskUpdate:
     def test_update_task_invalid_title_length(self, base_url, created_task):
         """Test updating a task with invalid title length (max 200)"""
         endpoint = ENDPOINT_TASK_BY_ID.format(taskId=created_task["id"])
+        original_title = created_task["title"]
+
         update_data = {
-            "title": "A" * 400  # Exceeds max length of 200
+            "title": "A" * 300  # Exceeds max length of 200
         }
 
-        response = requests.put(base_url + endpoint, json=update_data)
+        # Update should fail
+        update_response = requests.put(base_url + endpoint, json=update_data)
+        assert update_response.status_code == 400
 
-        assert response.status_code == 400
+        # Verify original title is unchanged
+        get_response = requests.get(base_url + endpoint)
+        assert get_response.status_code == 200
+        retrieved_task = get_response.json()
+        assert retrieved_task["title"] == original_title
 
     def test_update_task_empty_title(self, base_url, created_task):
         """Test updating a task with empty title"""
         endpoint = ENDPOINT_TASK_BY_ID.format(taskId=created_task["id"])
+        original_title = created_task["title"]
+
         update_data = {
             "title": ""
         }
 
-        response = requests.put(base_url + endpoint, json=update_data)
+        # Update should fail
+        update_response = requests.put(base_url + endpoint, json=update_data)
+        assert update_response.status_code == 400
 
-        assert response.status_code == 400
+        # Verify original title is unchanged
+        get_response = requests.get(base_url + endpoint)
+        assert get_response.status_code == 200
+        retrieved_task = get_response.json()
+        assert retrieved_task["title"] == original_title
 
+    @pytest.mark.parametrize("field,value", [
+        ("title", "Parametrized Title Update"),
+        ("description", "Parametrized Description Update"),
+        ("status", "DONE"),
+        ("priority", "LOW"),
+    ])
+    def test_update_single_field_parametrized(self, base_url, created_task, field, value):
+        """Test updating individual fields and verify persistence"""
+        endpoint = ENDPOINT_TASK_BY_ID.format(taskId=created_task["id"])
+        update_data = {field: value}
+
+        # Update the task
+        update_response = requests.put(base_url + endpoint, json=update_data)
+        assert update_response.status_code == 200
+        updated_task = update_response.json()
+        assert updated_task[field] == value
+
+        # Verify the update persisted
+        get_response = requests.get(base_url + endpoint)
+        assert get_response.status_code == 200
+        retrieved_task = get_response.json()
+        assert retrieved_task[field] == value
+
+    def test_update_multiple_fields_verify_all(self, base_url, created_task):
+        """Test updating multiple fields simultaneously and verify all changes persisted"""
+        endpoint = ENDPOINT_TASK_BY_ID.format(taskId=created_task["id"])
+        update_data = {
+            "title": "Multi-field Title",
+            "description": "Multi-field Description",
+            "status": "DONE",
+            "priority": "HIGH"
+        }
+
+        # Update the task
+        update_response = requests.put(base_url + endpoint, json=update_data)
+        assert update_response.status_code == 200
+        updated_task = update_response.json()
+
+        # Verify all fields in update response
+        for field, value in update_data.items():
+            assert updated_task[field] == value
+
+        # Verify all updates persisted
+        get_response = requests.get(base_url + endpoint)
+        assert get_response.status_code == 200
+        retrieved_task = get_response.json()
+
+        # Verify all fields persisted
+        for field, value in update_data.items():
+            assert retrieved_task[field] == value
+
+    def test_update_preserves_other_fields(self, base_url, created_task):
+        """Test that updating one field doesn't affect other fields"""
+        endpoint = ENDPOINT_TASK_BY_ID.format(taskId=created_task["id"])
+
+        # Store original values
+        original_description = created_task["description"]
+        original_priority = created_task.get("priority", "MIDDLE")
+
+        # Update only the title
+        update_data = {
+            "title": "Only Title Updated"
+        }
+
+        update_response = requests.put(base_url + endpoint, json=update_data)
+        assert update_response.status_code == 200
+
+        # Verify other fields are preserved
+        get_response = requests.get(base_url + endpoint)
+        assert get_response.status_code == 200
+        retrieved_task = get_response.json()
+
+        assert retrieved_task["title"] == "Only Title Updated"
+        assert retrieved_task["description"] == original_description
+        assert retrieved_task["priority"] == original_priority
+
+    def test_sequential_updates(self, base_url, created_task):
+        """Test multiple sequential updates and verify each persists"""
+        endpoint = ENDPOINT_TASK_BY_ID.format(taskId=created_task["id"])
+
+        # First update: title
+        update_response_1 = requests.put(base_url + endpoint, json={"title": "First Update"})
+        assert update_response_1.status_code == 200
+
+        get_response_1 = requests.get(base_url + endpoint)
+        assert get_response_1.status_code == 200
+        assert get_response_1.json()["title"] == "First Update"
+
+        # Second update: description
+        update_response_2 = requests.put(base_url + endpoint, json={"description": "Second Update"})
+        assert update_response_2.status_code == 200
+
+        get_response_2 = requests.get(base_url + endpoint)
+        assert get_response_2.status_code == 200
+        retrieved_task = get_response_2.json()
+        assert retrieved_task["title"] == "First Update"  # Previous update should persist
+        assert retrieved_task["description"] == "Second Update"
+
+        # Third update: status
+        update_response_3 = requests.put(base_url + endpoint, json={"status": "DONE"})
+        assert update_response_3.status_code == 200
+
+        get_response_3 = requests.get(base_url + endpoint)
+        assert get_response_3.status_code == 200
+        final_task = get_response_3.json()
+        assert final_task["title"] == "First Update"  # All previous updates should persist
+        assert final_task["description"] == "Second Update"
+        assert final_task["status"] == "DONE"
 
 class TestTaskDeletion:
     """Tests for deleting tasks"""

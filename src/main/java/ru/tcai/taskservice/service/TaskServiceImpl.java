@@ -67,8 +67,8 @@ public class TaskServiceImpl implements TaskService {
         if (priority == null) {
             priority = "MIDDLE";
         } else if (!priority.equals("LOW") &&
-                   !priority.equals("MIDDLE") &&
-                   !priority.equals("HIGH")) {
+                !priority.equals("MIDDLE") &&
+                !priority.equals("HIGH")) {
             priority = "MIDDLE";
         }
 
@@ -177,10 +177,17 @@ public class TaskServiceImpl implements TaskService {
             // First delete existing location and point if they exist
             if (task.getLocation_id() != null) {
                 Location existingLocation = locationRepository.findById(task.getLocation_id()).orElse(null);
-                if (existingLocation != null && existingLocation.getPoint_id() != null) {
-                    locationPointRepository.deleteById(existingLocation.getPoint_id());
+                if (existingLocation != null) {
+                    Long pointIdToDelete = existingLocation.getPoint_id();
+
+                    // Delete location first (child)
+                    locationRepository.deleteById(task.getLocation_id());
+
+                    // Then delete location point (parent)
+                    if (pointIdToDelete != null) {
+                        locationPointRepository.deleteById(pointIdToDelete);
+                    }
                 }
-                locationRepository.deleteById(task.getLocation_id());
             }
 
             // Create new location point
@@ -232,11 +239,11 @@ public class TaskServiceImpl implements TaskService {
             task.setDoerId(updateTaskRequest.getDoerId());
         }
 
-        if(updateTaskRequest.getPriority() != null) {
+        if (updateTaskRequest.getPriority() != null) {
             task.setPriority(updateTaskRequest.getPriority());
         }
 
-        if(updateTaskRequest.getStatus() != null) {
+        if (updateTaskRequest.getStatus() != null) {
             task.setStatus(updateTaskRequest.getStatus());
         }
 
@@ -400,10 +407,17 @@ public class TaskServiceImpl implements TaskService {
         if (updateNoteRequest.getLocation() != null) {
             if (note.getLocation_id() != null) {
                 Location existingLocation = locationRepository.findById(note.getLocation_id()).orElse(null);
-                if (existingLocation != null && existingLocation.getPoint_id() != null) {
-                    locationPointRepository.deleteById(existingLocation.getPoint_id());
+                if (existingLocation != null) {
+                    Long pointIdToDelete = existingLocation.getPoint_id();
+
+                    // Delete location first (child with foreign key)
+                    locationRepository.deleteById(note.getLocation_id());
+
+                    // Then delete location point (parent being referenced)
+                    if (pointIdToDelete != null) {
+                        locationPointRepository.deleteById(pointIdToDelete);
+                    }
                 }
-                locationRepository.deleteById(note.getLocation_id());
             }
 
             // Create new location point
@@ -423,7 +437,6 @@ public class TaskServiceImpl implements TaskService {
 
             note.setLocation_id(savedLocation.getId());
         }
-
         if (updateNoteRequest.getTitle() != null) {
             note.setTitle(updateNoteRequest.getTitle());
         }
